@@ -5,7 +5,7 @@ import warnings
 import torch
 import torch.distributed as dist
 
-import Distributed_BERT.utils
+import utils
 
 
 def distributed_init(args):

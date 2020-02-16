@@ -9,19 +9,11 @@ import collections
 import torch
 import numpy as np
 
-from Distributed_BERT import (
-    checkpoint_utils,
-    distributed_utils,
-    options,
-    progress_bar,
-    tasks,
-    utils,
-)
+import checkpoint_utils, distributed_utils, options, progress_bar, tasks, utils
 
-
-from Distributed_BERT.data import iterators
-from Distributed_BERT.trainer import Trainer
-from Distributed_BERT.meters import AverageMeter, StopwatchMeter
+from data import iterators
+from trainer import Trainer
+from meters import AverageMeter, StopwatchMeter
 
 
 def main(args, init_distributed=False):

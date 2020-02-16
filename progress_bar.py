@@ -13,8 +13,8 @@ from numbers import Number
 import os
 import sys
 
-from Distributed_BERT import distributed_utils
-from Distributed_BERT.meters import AverageMeter, StopwatchMeter, TimeMeter
+import distributed_utils
+from meters import AverageMeter, StopwatchMeter, TimeMeter
 
 g_tbmf_wrapper = None
 

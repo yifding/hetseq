@@ -6,7 +6,7 @@ import torch
 from Distributed_BERT.data import data_utils, FairseqDataset, iterators, Dictionary
 '''
 
-from Distributed_BERT.data import BertH5pyData, ConBertH5pyData, data_utils
+from data import BertH5pyData, ConBertH5pyData, data_utils
 
 
 class Task(object):

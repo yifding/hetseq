@@ -6,10 +6,10 @@ import os
 import sys
 
 import torch
-import torch.nn.parallel.DistributedDataParallel as DDP
+from torch.nn.parallel.distributed import DistributedDataParallel as DDP
 
-from Distributed_BERT.meters import AverageMeter, StopwatchMeter, TimeMeter
-from Distributed_BERT import utils
+from meters import AverageMeter, StopwatchMeter, TimeMeter
+import utils
 
 
 class Trainer(object):
@@ -139,8 +139,8 @@ class Trainer(object):
             )
         )
 
+        '''
         if self.args.fp16:
-            '''
             if self.cuda and torch.cuda.get_device_capability(0)[0] < 7:
                 print('| WARNING: your device does NOT support faster training with --fp16, '
                       'please switch to FP32 which is likely to be faster')
@@ -148,12 +148,12 @@ class Trainer(object):
                 self._optimizer = optim.MemoryEfficientFP16Optimizer.build_optimizer(self.args, params)
             else:
                 self._optimizer = optim.FP16Optimizer.build_optimizer(self.args, params)
-            '''
-            pass
         else:
             if self.cuda and torch.cuda.get_device_capability(0)[0] >= 7:
                 print('| NOTICE: your device may support faster training with --fp16')
             self._optimizer = optim.build_optimizer(self.args, params)
+        '''
+        self._optimizer = optim.build_optimizer(self.args, params)
 
         '''
         if self.args.use_bmuf:
