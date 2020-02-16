@@ -4,3 +4,4 @@ CRC_RUN_FILE
 preprocessing
 
 build
+__pycache__
