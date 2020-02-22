@@ -37,6 +37,7 @@ def build_progress_bar(args, iterator, epoch=None, prefix=None, default='tqdm', 
     else:
         raise ValueError('Unknown log format: {}'.format(args.log_format))
 
+    '''
     if args.tbmf_wrapper and distributed_utils.is_master(args):
         global g_tbmf_wrapper
         if g_tbmf_wrapper is None:
@@ -48,6 +49,7 @@ def build_progress_bar(args, iterator, epoch=None, prefix=None, default='tqdm', 
         bar = g_tbmf_wrapper(bar, args, args.log_interval)
     elif args.tensorboard_logdir and distributed_utils.is_master(args):
         bar = tensorboard_log_wrapper(bar, args.tensorboard_logdir, args)
+    '''
 
     return bar
 
@@ -112,6 +114,7 @@ class progress_bar(object):
         return postfix
 
 
+'''
 class json_progress_bar(progress_bar):
     """Log output in JSON format."""
 
@@ -152,8 +155,9 @@ class json_progress_bar(progress_bar):
         for key in stats.keys():
             postfix[key] = format_stat(stats[key])
         return postfix
-
 '''
+
+
 class noop_progress_bar(progress_bar):
     """No logging."""
 
@@ -171,8 +175,9 @@ class noop_progress_bar(progress_bar):
     def print(self, stats, tag='', step=None):
         """Print end-of-epoch stats."""
         pass
-'''
 
+
+'''
 class simple_progress_bar(progress_bar):
     """A minimal logger for non-TTY environments."""
 
@@ -199,6 +204,7 @@ class simple_progress_bar(progress_bar):
         """Print end-of-epoch stats."""
         postfix = self._str_pipes(self._format_stats(stats))
         print('{} | {}'.format(self.prefix, postfix), flush=True)
+'''
 
 '''
 class tqdm_progress_bar(progress_bar):

@@ -48,18 +48,14 @@ class _Optimizer(object):
         return self._optimizer.__getstate__()
     '''
 
-    '''
     def get_lr(self):
         """Return the current learning rate."""
         return self.optimizer.param_groups[0]['lr']
-    '''
 
-    '''
     def set_lr(self, lr):
         """Set the learning rate."""
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
-    '''
 
     '''
     def state_dict(self):
@@ -89,34 +85,28 @@ class _Optimizer(object):
         loss.backward()
     '''
 
-    '''
     def multiply_grads(self, c):
         """Multiplies grads by a constant *c*."""
         for p in self.params:
             if p.grad is not None:
                 p.grad.data.mul_(c)
-    '''
 
-    '''
     def clip_grad_norm(self, max_norm):
         """Clips gradient norm."""
         if max_norm > 0:
             return torch.nn.utils.clip_grad_norm_(self.params, max_norm)
         else:
             return math.sqrt(sum(p.grad.data.norm()**2 for p in self.params if p.grad is not None))
-    '''
 
     def step(self, closure=None):
         """Performs a single optimization step."""
         self.optimizer.step(closure)
 
-    '''
     def zero_grad(self):
         """Clears the gradients of all optimized parameters."""
         for p in self.params:
             p.grad = None
         self.optimizer.zero_grad()
-    '''
 
     '''
     @property

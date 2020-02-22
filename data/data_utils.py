@@ -218,7 +218,7 @@ def batch_by_size(
             be a multiple of N (default: 1).
     """
     try:
-        from fairseq.data.data_utils_fast import batch_by_size_fast     # #dependency issue
+        from data.data_utils_fast import batch_by_size_fast     # #dependency issue
     except ImportError:
         raise ImportError(
             'Please build Cython components with: `pip install --editable .` '

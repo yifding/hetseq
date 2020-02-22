@@ -21,20 +21,20 @@ class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether suppo
         self.read_data(path)
 
     def read_data(self, path):
-        self.data_file = h5py.File(path, "r")
+        self.data_file = h5py.File(path, "r", libver='latest', swmr=True)
         self._len = len(self.data_file[self.keys[0]])
 
     def check_index(self, i):
         if i < 0 or i >= self._len:
             raise IndexError('index out of range')
 
-    @lru_cache(maxsize=8)
-    def __getitem__(self, i):
+    # @lru_cache(maxsize=8)
+    def __getitem__(self, index):
         if not self.data_file:
             self.read_data(self.path)
-        self.check_index(i)
+        self.check_index(index)
 
-        inputs = [self.data_file[key][i] for key in self.keys]
+        inputs = [self.data_file[key][index] for key in self.keys]
 
         [input_ids, input_mask, segment_ids, masked_lm_positions, masked_lm_ids, next_sentence_labels] = [
             torch.from_numpy(input.astype(np.int64)) if indice < 5 else torch.from_numpy(
@@ -64,6 +64,8 @@ class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether suppo
         return np.arange(len(self))
     '''
 
+    def set_epoch(self, epoch):
+        pass
 
 class ConBertH5pyData(torch.utils.data.Dataset):
     @staticmethod
@@ -123,6 +125,8 @@ class ConBertH5pyData(torch.utils.data.Dataset):
         dataset_idx, sample_idx = self._get_dataset_and_sample_index(idx)
         return self.datasets[dataset_idx].size(sample_idx)
 
+    def set_epoch(self, epoch):
+        pass
 
 def test(split = "train"):
     files = "/scratch365/yding4/bert_project/bert_prep_working_dir/" \

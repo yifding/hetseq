@@ -8,6 +8,8 @@ import sys
 import torch
 from torch.nn.parallel.distributed import DistributedDataParallel as DDP
 
+import optim
+import lr_scheduler
 from meters import AverageMeter, StopwatchMeter, TimeMeter
 import utils
 
@@ -122,13 +124,11 @@ class Trainer(object):
             self._build_optimizer()
         return self._optimizer
 
-    '''
     @property
     def lr_scheduler(self):
         if self._lr_scheduler is None:
             self._build_optimizer()  # this will initialize self._lr_scheduler
         return self._lr_scheduler
-    '''
 
     def _build_optimizer(self):
         params = list(
@@ -153,7 +153,13 @@ class Trainer(object):
                 print('| NOTICE: your device may support faster training with --fp16')
             self._optimizer = optim.build_optimizer(self.args, params)
         '''
-        self._optimizer = optim.build_optimizer(self.args, params)
+
+
+        # ORI: self._optimizer = optim.build_optimizer(self.args, params)
+        if self.args.optimizer == 'adam':
+            self._optimizer = optim._Adam(self.args, params)
+        else:
+            raise ValueError("unsupported optimizer")
 
         '''
         if self.args.use_bmuf:
@@ -162,8 +168,15 @@ class Trainer(object):
 
         # We should initialize the learning rate scheduler immediately after
         # building the optimizer, so that the initial learning rate is set.
-        self._lr_scheduler = lr_scheduler.build_lr_scheduler(self.args, self.optimizer)
+
+        # ORI: self._lr_scheduler = lr_scheduler.build_lr_scheduler(self.args, self.optimizer)
+        if self.args.lr_scheduler == 'PolynomialDecayScheduler':
+            self._lr_scheduler = lr_scheduler.PolynomialDecayScheduler(self.args, self.optimizer)
+        else:
+            raise ValueError("unsupported lr_scheduler")
+
         self._lr_scheduler.step_update(0)
+
 
     '''
     def save_checkpoint(self, filename, extra_state):
@@ -280,7 +293,7 @@ class Trainer(object):
 
         self._set_seed()
         self.model.train()
-        self.criterion.train()
+        #self.criterion.train()
         self.zero_grad()
 
         if not dummy_batch:
@@ -316,10 +329,19 @@ class Trainer(object):
             try:
                 with maybe_no_sync():
                     # forward and backward
+
+                    #ORI:
                     loss, sample_size, logging_output = self.task.train_step(
                         sample, self.model, self.criterion, self.optimizer,
                         ignore_grad
                     )
+
+                    '''
+                    loss, sample_size, logging_output = self.task.train_step(
+                        sample, self.model, self.optimizer,
+                        ignore_grad,
+                    )
+                    '''
 
                 if not ignore_grad:
                     logging_outputs.append(logging_output)
@@ -331,9 +353,10 @@ class Trainer(object):
                         self._all_reduce_list[2] += logging_output.get('loss', 0.0)
                         self._all_reduce_list[3] += logging_output.get('nll_loss', 0.0)
                         self._all_reduce_list[4] += logging_output.get('ntokens', 0.0)
+
             except RuntimeError as e:
-                '''
                 if 'out of memory' in str(e):
+                    ''' ori:
                     msg = (
                         '| WARNING: ran out of memory with exception: '
                         + '{};'.format(e)
@@ -348,13 +371,16 @@ class Trainer(object):
                         raise ValueError(msg)
                     ooms += 1
                     self.zero_grad()
+                    '''
+                    raise RuntimeError('ran out of memory with exception')
+
                 else:
                     raise e
-                '''
-                raise e     # # ignore oom
 
+            '''
             if self.fast_stat_sync:
                 self._all_reduce_list[5] += ooms
+            '''
 
         '''
         if ooms > 0 and self._oom_batch is not None:
@@ -403,7 +429,7 @@ class Trainer(object):
                     or all(math.isnan(norm) or math.isinf(norm) for norm in prev_norms)
                 ), 'Fatal error: gradients are inconsistent between workers'
 
-        '''
+        ''' ori:
         self.meters['oom'].update(ooms, len(samples))
         if ooms == self.args.distributed_world_size * len(samples):
             print('| WARNING: OOM in all workers, skipping update')
@@ -411,12 +437,14 @@ class Trainer(object):
             return None
         '''
 
+        ''' ori:
         if not self.fast_stat_sync:
             # aggregate logging outputs and sample sizes
             logging_output = self.task.aggregate_logging_outputs(
                 logging_outputs, self.get_criterion()
             )
             sample_size = self.task.grad_denom(sample_sizes, self.get_criterion())
+        '''
 
         if not all(k in logging_output for k in ['ntokens', 'nsentences']):
             raise Exception((
@@ -557,23 +585,17 @@ class Trainer(object):
             self.train_step([self._oom_batch], True)
     '''
 
-    '''
     def zero_grad(self):
         self.optimizer.zero_grad()
-    '''
 
-    '''
     def clear_buffered_stats(self):
         self._all_reduce_list = [0.0] * 6
-    '''
 
-    '''
     def lr_step(self, epoch, val_loss=None):
         """Adjust the learning rate based on the validation loss."""
         self.lr_scheduler.step(epoch, val_loss)
         # prefer updating the LR based on the number of steps
         return self.lr_step_update()
-    '''
 
     def lr_step_update(self):
         """Update the learning rate after each update."""      # #TODO: lr_scheduler
@@ -607,12 +629,10 @@ class Trainer(object):
         """Get the number of parameters updates."""
         return self._num_updates
 
-    '''
     def set_num_updates(self, num_updates):
         """Set the number of parameters updates."""
         self._num_updates = num_updates
         self.lr_step_update()
-    '''
 
     def _prepare_sample(self, sample):
         if sample is None or len(sample) == 0:
@@ -641,8 +661,9 @@ class Trainer(object):
         if self.cuda:
             torch.cuda.manual_seed(seed)
 
-    '''
+
     def _sync_stats(self):
+        ''' ori:
         return (
             self.args.distributed_world_size > 1 and
             (
@@ -653,4 +674,8 @@ class Trainer(object):
                 )
             )
         )
-    '''
+        '''
+        return (
+                self.args.distributed_world_size > 1 and not self.args_use_bmuf
+        )
+

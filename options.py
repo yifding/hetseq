@@ -4,10 +4,11 @@ import argparse
 
 def get_training_parser(task='bert'):
     parser = argparse.ArgumentParser(allow_abbrev=False)
-    add_dataset_args(parser, train=True, task=task)
     parser.add_argument('--no-progress-bar', action='store_true', help='disable progress bar')
     parser.add_argument('--seed', default=19940802, type=int, metavar='N',
                         help='pseudo random number generator seed')
+    parser.add_argument('--cpu', action='store_true', help='use CPU instead of CUDA')
+    # parser.add_argument('--fp16', action='store_true', help='use FP16')
     parser.add_argument('--log-interval', type=int, default=1000, metavar='N',
                         help='log progress every N batches (when progress bar is disabled)')
     parser.add_argument('--log-format', default='none',
@@ -16,8 +17,8 @@ def get_training_parser(task='bert'):
 
     add_dataset_args(parser, train=True)    # data file, directory and etc.
     add_distributed_training_args(parser)   # number of nodes, gpus, communication
-    add_optimization_args(parser)   # initial & stop LR, update frequency, stop epoch, stop updates
-    #add_checkpoint_args(parser)
+    add_optimization_args(parser, optimizer='adam')   # initial & stop LR, update frequency, stop epoch, stop updates
+    add_checkpoint_args(parser)
 
     return parser
 
@@ -25,12 +26,14 @@ def get_training_parser(task='bert'):
 def add_dataset_args(parser, train=False, gen=False,  task='bert'):
     group = parser.add_argument_group('Dataset and data loading')
 
-    group.add_argument('--num-workers', default=16, type=int, metavar='N',
+    group.add_argument('--num-workers', default=0, type=int, metavar='N',
                        help='how many subprocesses to use for data loading')
     group.add_argument('--max-tokens', type=int, metavar='N',
                        help='maximum number of tokens in a batch')
     group.add_argument('--max-sentences', '--batch-size', type=int, metavar='N',
                        help='maximum number of sentences in a batch')
+    group.add_argument('--required-batch-size-multiple', default=1, type=int, metavar='N',
+                       help='batch size will be a multiplier of this value')
 
     if train:
         group.add_argument('--train-subset', default='train', metavar='SPLIT',
@@ -50,12 +53,14 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
         group.add_argument('--max-sentences-valid', type=int, metavar='N',
                            help='maximum number of sentences in a validation batch'
                                 ' (defaults to --max-sentences)')
+        group.add_argument('--curriculum', default=0, type=int, metavar='N',
+                           help='don\'t shuffle batches for first N epochs')
 
         if task == 'bert':
             # personal adding for BERT data
-            parser.add_argument('task', type=str,
+            parser.add_argument('--task', type=str,
                                 default='bert')
-            parser.add_argument('data', type=str,
+            parser.add_argument('--data', type=str,
                                 help='path including data')
             group.add_argument('--dict', type=str, metavar='PATH of a file',
                                help='PATH to dictionary')
@@ -129,28 +134,24 @@ def add_distributed_training_args(parser):
     group.add_argument('--bucket-cap-mb', default=25, type=int, metavar='MB',
                        help='bucket size for reduction')
 
-    '''
     group.add_argument('--fix-batches-to-gpus', action='store_true',
                        help='don\'t shuffle batches between GPUs; this reduces overall '
                             'randomness and may affect precision but avoids the cost of '
                             're-reading the data')
-    '''
 
     ##utilized in the nn.parallel.DistributedDataParallel
     group.add_argument('--find-unused-parameters', default=False, action='store_true',
                        help='disable unused parameter detection (not applicable to '
                             'no_c10d ddp-backend')
 
-    '''
     group.add_argument('--fast-stat-sync', default=False, action='store_true',
                        help='Enable fast sync of stats between nodes, this hardcodes to '
                             'sync only some default stats from logging_output.')
-    '''
     # fmt: on
     return group
 
 
-def add_optimization_args(parser):
+def add_optimization_args(parser, optimizer='adam', lr_scheduler='PolynomialDecayScheduler'):
     group = parser.add_argument_group('Optimization')
 
     group.add_argument('--max-epoch', '--me', default=0, type=int, metavar='N',
@@ -180,10 +181,30 @@ def add_optimization_args(parser):
     group.add_argument('--use-bmuf', default=False, action='store_true',
                        help='specify global optimizer for syncing models on different GPUs/shards')
 
+    if optimizer == 'adam':
+        group.add_argument('--optimizer', default='adam', type=str, help='pass adam to trainer to select optim class')
+        group.add_argument('--adam-betas', default='(0.9, 0.999)', metavar='B',
+                            help='betas for Adam optimizer')
+        group.add_argument('--adam-eps', type=float, default=1e-8, metavar='D',
+                            help='epsilon for Adam optimizer')
+        group.add_argument('--weight-decay', '--wd', default=0.0, type=float, metavar='WD',
+                            help='weight decay')
+
+    if lr_scheduler == 'PolynomialDecayScheduler':
+        group.add_argument('--lr_scheduler', default='PolynomialDecayScheduler',
+                           type=str, help='pass poly lr_scheduler to trainer to select optim class')
+
+        group.add_argument('--force-anneal', '--fa', type=int, metavar='N',
+                            help='force annealing at specified epoch')
+        group.add_argument('--warmup-updates', default=0, type=int, metavar='N',
+                            help='warmup the learning rate linearly for the first N updates')
+        group.add_argument('--end-learning-rate', default=0.0, type=float)
+        group.add_argument('--power', default=1.0, type=float)
+        group.add_argument('--total-num-update', default=1000000, type=int)
+
     return group
 
 
-'''
 def add_checkpoint_args(parser):
     group = parser.add_argument_group('Checkpointing')
 
@@ -217,6 +238,7 @@ def add_checkpoint_args(parser):
     group.add_argument('--save-interval-updates', type=int, default=0, metavar='N',
                        help='save a checkpoint (and validate) every N updates')
 
+    '''
     #checkpoints saving options
     group.add_argument('--keep-interval-updates', type=int, default=-1, metavar='N',
                        help='keep the last N checkpoints saved with --save-interval-updates')
@@ -235,10 +257,10 @@ def add_checkpoint_args(parser):
     group.add_argument('--maximize-best-checkpoint-metric', action='store_true',
                        help='select the largest metric value for saving "best" checkpoints')
     # fmt: on
+    '''
     return group
-'''
 
-'''
+
 def eval_str_list(x, type=float):
     if x is None:
         return None
@@ -257,7 +279,6 @@ def eval_bool(x, default=False):
         return bool(eval(x))
     except TypeError:
         return default
-'''
 
 
 def parse_args_and_arch(parser):

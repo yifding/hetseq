@@ -1,3 +1,6 @@
+import os
+import collections
+
 import numpy as np
 import torch
 
@@ -5,8 +8,7 @@ import torch
 #from fairseq import tokenizer
 from Distributed_BERT.data import data_utils, FairseqDataset, iterators, Dictionary
 '''
-
-from data import BertH5pyData, ConBertH5pyData, data_utils
+from data import BertH5pyData, ConBertH5pyData, data_utils, iterators
 
 
 class Task(object):
@@ -88,7 +90,6 @@ class Task(object):
         """
         raise NotImplementedError
 
-    '''
     def dataset(self, split):
         """
         Return a loaded dataset split.
@@ -100,10 +101,9 @@ class Task(object):
         from fairseq.data import FairseqDataset
         if split not in self.datasets:
             raise KeyError('Dataset not loaded: ' + split)
-        if not isinstance(self.datasets[split], FairseqDataset):
-            raise TypeError('Datasets are expected to be of type FairseqDataset')
+        if not isinstance(self.datasets[split], torch.utils.data.Dataset):
+            raise TypeError('Datasets are expected to be of type torch.utils.data.Dataset')
         return self.datasets[split]
-    '''
 
     def get_batch_iterator(
         self, dataset, max_tokens=None, max_sentences=None, max_positions=None,
@@ -238,6 +238,7 @@ class Task(object):
     '''
 
     '''
+    # ORI:
     def train_step(self, sample, model, criterion, optimizer, ignore_grad=False):
         """
         Do forward and backward, and return the loss as computed by *criterion*
@@ -264,6 +265,32 @@ class Task(object):
         return loss, sample_size, logging_output
     '''
 
+    def train_step(self, sample, model, optimizer, ignore_grad=False):
+        """
+        Do forward and backward, and return the loss as computed by *criterion*
+        for the given *model* and *sample*.
+        Args:
+            sample (dict): the mini-batch. The format is defined by the
+                :class:`~fairseq.data.FairseqDataset`.
+            model (~fairseq.models.BaseFairseqModel): the model
+            criterion (~fairseq.criterions.FairseqCriterion): the criterion
+            optimizer (~fairseq.optim.FairseqOptimizer): the optimizer
+            ignore_grad (bool): multiply loss by 0 if this is set to True
+        Returns:
+            tuple:
+                - the loss
+                - the sample size, which is used as the denominator for the
+                  gradient
+                - logging outputs to display while training
+        """
+        model.train()
+        #ori: loss, sample_size, logging_output = criterion(model, sample)
+        # loss = model(*sample)
+        if ignore_grad:
+            loss *= 0
+        optimizer.backward(loss)
+        return loss, sample_size, logging_output
+
     '''
     def valid_step(self, sample, model, criterion):
         model.eval()
@@ -278,12 +305,11 @@ class Task(object):
             return generator.generate(models, sample, prefix_tokens=prefix_tokens)
     '''
 
-    '''
     def update_step(self, num_updates):
         """Task level update when number of update increases. This is called after optimization step and
            learning rate update of each step"""
         pass
-    '''
+
 
     '''
     def grad_denom(self, sample_sizes, criterion):
@@ -377,7 +403,7 @@ class LanguageModelingTask(Task):
 
     #def __init__(self, args, dictionary, output_dictionary=None, targets=None):
     def __init__(self, args, dictionary):
-        super().__init__(args)
+        super(LanguageModelingTask, self).__init__(args)
         self.dictionary = dictionary
         '''
         self.output_dictionary = output_dictionary or dictionary
@@ -434,11 +460,10 @@ class LanguageModelingTask(Task):
             # standard language modeling
             targets = ["future"]
         '''
-        dictionary = self.load_dictionary(args.dict)
+        dictionary = cls.load_dictionary(cls, args.dict)
 
         #return cls(args, dictionary, output_dictionary, targets=targets)
         return cls(args, dictionary)
-
 
     def build_model(self, args):
         if args.task == 'bert':
@@ -451,7 +476,6 @@ class LanguageModelingTask(Task):
                 )
 
         return model
-
 
     def load_dataset(self, split, **kwargs):
         """Load a given dataset split.
@@ -466,6 +490,9 @@ class LanguageModelingTask(Task):
 
         files = [os.path.join(path, f) for f in os.listdir(path)] if os.path.isdir(path) else [path]
         files = sorted([f for f in files if split in f])
+
+        # # debug
+        files = files[0:10]
 
         assert len(files) > 0, "no suitable file in split ***{}***".format(split)
 

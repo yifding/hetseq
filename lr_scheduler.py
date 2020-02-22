@@ -1,14 +1,14 @@
 import math
 import torch
-from torch.optim import Optimizer
+from optim import _Optimizer
 
 
 class _LRScheduler(object):
     def __init__(self, args, optimizer):
         super().__init__()
         # # TODO make optimizer, lr_scheduler compatiable
-        if not isinstance(optimizer, Optimizer):
-            raise ValueError('optimizer must be an instance of FairseqOptimizer')
+        if not isinstance(optimizer, _Optimizer):
+            raise ValueError('optimizer must be an instance of _Optimizer')
         self.args = args
         self.optimizer = optimizer
         self.best = None
@@ -45,7 +45,7 @@ class _LRScheduler(object):
         return self.optimizer.get_lr()
 
 
-class PolynomialDecaySchedule(_LRScheduler):
+class PolynomialDecayScheduler(_LRScheduler):
     """Decay the LR on a fixed schedule."""
 
     def __init__(self, args, optimizer):
