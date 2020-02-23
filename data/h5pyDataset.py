@@ -11,11 +11,11 @@ from torch.utils.data.dataloader import default_collate
 
 
 class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether support multiprocess loading?
-    def __init__(self, path):
+    def __init__(self, path, max_pred_length=512):
         super(BertH5pyData, self).__init__()
         self.keys = ('input_ids', 'input_mask', 'segment_ids',
                      'masked_lm_positions', 'masked_lm_ids', 'next_sentence_labels')
-
+        self.max_pred_length = max_pred_length
         self.data_file = None
         self.path = path
         self.read_data(path)
@@ -28,7 +28,7 @@ class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether suppo
         if i < 0 or i >= self._len:
             raise IndexError('index out of range')
 
-    # @lru_cache(maxsize=8)
+    @lru_cache(maxsize=8)
     def __getitem__(self, index):
         if not self.data_file:
             self.read_data(self.path)
@@ -40,8 +40,22 @@ class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether suppo
             torch.from_numpy(input.astype(np.int64)) if indice < 5 else torch.from_numpy(
                 np.asarray(input.astype(np.int64))) for indice, input in enumerate(inputs)]
 
-        return [input_ids, input_mask, segment_ids,
-                masked_lm_positions, masked_lm_ids, next_sentence_labels]
+        masked_lm_labels = torch.ones(input_ids.shape, dtype=torch.long) * -1
+        index = self.max_pred_length
+        # store number of  masked tokens in index
+        padded_mask_indices = (masked_lm_positions == 0).nonzero()
+        if len(padded_mask_indices) != 0:
+            index = padded_mask_indices[0].item()
+        masked_lm_labels[masked_lm_positions[:index]] = masked_lm_ids[:index]
+
+        return [input_ids, segment_ids, input_mask,
+                masked_lm_labels, next_sentence_labels]
+
+    '''
+    loss = model(input_ids=input_ids, token_type_ids=segment_ids, attention_mask=input_mask,
+                 masked_lm_labels=masked_lm_labels, next_sentence_label=next_sentence_labels,
+                 checkpoint_activations=args.checkpoint_activations)
+    '''
 
     def __del__(self):
         if self.data_file:

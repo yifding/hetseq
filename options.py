@@ -66,7 +66,8 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
                                help='PATH to dictionary')
             group.add_argument('--config_file', type=str, metavar='PATH of a file',
                                help='PATH to bert model configuration', required=True)
-
+            group.add_argument('--max_pred_length', type=int, default=512,
+                               help='max number of tokens in a sentence')
 
 
     '''

@@ -9,11 +9,13 @@ import collections
 import torch
 import numpy as np
 
-import checkpoint_utils, distributed_utils, options, progress_bar, tasks, utils
+from tqdm import tqdm
 
+import checkpoint_utils, distributed_utils, options, progress_bar, tasks, utils
 from data import iterators
 from trainer import Trainer
 from meters import AverageMeter, StopwatchMeter
+
 
 
 def main(args, init_distributed=False):
@@ -138,13 +140,23 @@ def train(args, trainer, task, epoch_itr):                  # #revise-task 7
     max_update = args.max_update or math.inf
 
     # #WORKING
-    for i, samples in enumerate(progress, start=epoch_itr.iterations_in_epoch):
-        # #WORKING
+    if distributed_utils.is_master(args):
+        loop = tqdm(enumerate(progress, start=epoch_itr.iterations_in_epoch))
+    else:
+        loop = enumerate(progress, start=epoch_itr.iterations_in_epoch)
+
+    for i, samples in loop:
+        #print('samples', type(samples))
+        #print(len(samples),len(samples[0]), len(samples[0][0]))
+        #print(samples[0])
+        #continue
+
         log_output = trainer.train_step(samples)
         if log_output is None:
             continue
 
         # log mid-epoch stats
+        '''
         stats = get_training_stats(trainer)
         for k, v in log_output.items():
             if k in ['loss', 'nll_loss', 'ntokens', 'nsentences', 'sample_size']:
@@ -160,6 +172,7 @@ def train(args, trainer, task, epoch_itr):                  # #revise-task 7
         if i == 0:
             trainer.get_meter('wps').reset()
             trainer.get_meter('ups').reset()
+        '''
 
         num_updates = trainer.get_num_updates()
         '''

@@ -284,10 +284,33 @@ class Task(object):
                 - logging outputs to display while training
         """
         model.train()
-        #ori: loss, sample_size, logging_output = criterion(model, sample)
-        # loss = model(*sample)
+        # ori: loss, sample_size, logging_output = criterion(model, sample)
+        # cheat by adding bert parameters
+
+        # TODO sample_size
+        # TODO logging_output
+        '''
+        [input_ids, input_mask, segment_ids,
+         masked_lm_positions, masked_lm_ids, next_sentence_labels] = sample
+        '''
+        loss = model(*sample)
         if ignore_grad:
             loss *= 0
+        if sample is None or len(sample) == 0 or len(sample[0][0]) == 0:
+            sample_size = 0
+        else:
+            sample_size = len(sample[0][0])
+
+        nsentences = sample_size
+
+        logging_output = {
+            'nsentences': nsentences,
+            'loss': loss.data,
+            'nll_loss': loss.data,
+            'ntokens': 0,
+            'sample_size': sample_size,
+        }
+
         optimizer.backward(loss)
         return loss, sample_size, logging_output
 

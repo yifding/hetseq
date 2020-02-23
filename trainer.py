@@ -8,6 +8,7 @@ import sys
 import torch
 from torch.nn.parallel.distributed import DistributedDataParallel as DDP
 
+import distributed_utils
 import optim
 import lr_scheduler
 from meters import AverageMeter, StopwatchMeter, TimeMeter
@@ -330,18 +331,18 @@ class Trainer(object):
                 with maybe_no_sync():
                     # forward and backward
 
+                    '''
                     #ORI:
                     loss, sample_size, logging_output = self.task.train_step(
                         sample, self.model, self.criterion, self.optimizer,
                         ignore_grad
                     )
-
                     '''
+
                     loss, sample_size, logging_output = self.task.train_step(
                         sample, self.model, self.optimizer,
                         ignore_grad,
                     )
-                    '''
 
                 if not ignore_grad:
                     logging_outputs.append(logging_output)
@@ -661,7 +662,6 @@ class Trainer(object):
         if self.cuda:
             torch.cuda.manual_seed(seed)
 
-
     def _sync_stats(self):
         ''' ori:
         return (
@@ -676,6 +676,6 @@ class Trainer(object):
         )
         '''
         return (
-                self.args.distributed_world_size > 1 and not self.args_use_bmuf
+                self.args.distributed_world_size > 1
         )
 
