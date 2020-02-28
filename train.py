@@ -2,6 +2,7 @@ __AUTHOR__ = "Yifan Ding"
 __E_MAIL__ = "dyf0125@gmail.com"
 __DATE__ = "1/31/2019"
 
+import sys
 import math
 import random
 import collections
@@ -15,7 +16,6 @@ import checkpoint_utils, distributed_utils, options, progress_bar, tasks, utils
 from data import iterators
 from trainer import Trainer
 from meters import AverageMeter, StopwatchMeter
-
 
 
 def main(args, init_distributed=False):
@@ -37,7 +37,7 @@ def main(args, init_distributed=False):
     if distributed_utils.is_master(args):
         checkpoint_utils.verify_checkpoint_directory(args.save_dir)
     '''
-    print(args)
+    print(args, flush=True)
 
     # Setup task, e.g., translation, language modeling, etc.
     task = None
@@ -55,7 +55,10 @@ def main(args, init_distributed=False):
     # ignore criterion now, maybe push back in the future, leave all the things with criterion commented
     # criterion = None
 
-    print(model)
+    # ori:
+    # print(model)
+
+    # ori:
     #print('| model {}, criterion {}'.format(args.arch, criterion.__class__.__name__))
     print('| num. model params: {} (num. trained: {})'.format(
         sum(p.numel() for p in model.parameters()),
@@ -97,17 +100,23 @@ def main(args, init_distributed=False):
         # train for one epoch
         train(args, trainer, task, epoch_itr)                   # #revise-task 6
 
+        ''' ori
         if not args.disable_validation and epoch_itr.epoch % args.validate_interval == 0:
             valid_losses = validate(args, trainer, task, epoch_itr, valid_subsets)                  # #revise-task 7
         else:
             valid_losses = [None]
+        '''
+        # debug
+        valid_losses = [None]
 
         # only use first validation loss to update the learning rate
         lr = trainer.lr_step(epoch_itr.epoch, valid_losses[0])
 
         # save checkpoint
+        '''
         if epoch_itr.epoch % args.save_interval == 0:
             checkpoint_utils.save_checkpoint(args, trainer, epoch_itr, valid_losses[0])
+        '''
 
         reload_dataset = ':' in getattr(args, 'data', '')
         # sharded data: get train iterator for next epoch
@@ -145,11 +154,22 @@ def train(args, trainer, task, epoch_itr):                  # #revise-task 7
     else:
         loop = enumerate(progress, start=epoch_itr.iterations_in_epoch)
 
+    #loop = enumerate(progress, start=epoch_itr.iterations_in_epoch)
+    #loop = enumerate(itr)
+
     for i, samples in loop:
         #print('samples', type(samples))
         #print(len(samples),len(samples[0]), len(samples[0][0]))
         #print(samples[0])
         #continue
+
+        print(i, "rank", args.distributed_rank, flush=True)
+        print(i, "rank", args.distributed_rank, len(samples), flush=True)
+        if samples[0] is None:
+            print('HHHHO')
+        else:
+            print(i, "rank", args.distributed_rank, len(samples), len(samples[0]), len(samples[0][0]), flush=True)
+        sys.stdout.flush()
 
         log_output = trainer.train_step(samples)
         if log_output is None:

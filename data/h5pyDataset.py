@@ -60,10 +60,12 @@ class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether suppo
     def __del__(self):
         if self.data_file:
             self.data_file.flush()
-            #self.data_file.close()     #encounter bug, don't know how to fix it
+            self.data_file.close()     #encounter bug, don't know how to fix it
 
     def __len__(self):
-        return self._len
+        # return self._len
+        # debug
+        return 11
 
     def size(self, idx: int):
         """
@@ -119,6 +121,9 @@ class ConBertH5pyData(torch.utils.data.Dataset):
 
     def collater(self, samples):
         # For now only supports datasets with same underlying collater implementations
+        # print("samples", type(samples))
+        if len(samples) == 0:
+            return None
         if hasattr(self.datasets[0], 'collater'):
             return self.datasets[0].collater(samples)
         else:
@@ -141,6 +146,7 @@ class ConBertH5pyData(torch.utils.data.Dataset):
 
     def set_epoch(self, epoch):
         pass
+
 
 def test(split = "train"):
     files = "/scratch365/yding4/bert_project/bert_prep_working_dir/" \

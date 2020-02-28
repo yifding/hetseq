@@ -515,7 +515,7 @@ class LanguageModelingTask(Task):
         files = sorted([f for f in files if split in f])
 
         # # debug
-        files = files[0:10]
+        files = files[0:1]
 
         assert len(files) > 0, "no suitable file in split ***{}***".format(split)
 
