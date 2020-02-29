@@ -232,7 +232,6 @@ def add_checkpoint_args(parser):
     group.add_argument('--optimizer-overrides', default="{}", type=str, metavar='DICT',
                        help='a dictionary used to override optimizer args when loading a checkpoint')
 
-
     group.add_argument('--save-interval', type=int, default=1, metavar='N',
                        help='save a checkpoint every N epochs')
 

@@ -63,7 +63,6 @@ class _Optimizer(object):
         return self.optimizer.state_dict()
     '''
 
-    '''
     def load_state_dict(self, state_dict, optimizer_overrides=None):
         """Load an optimizer state dict.
         In general we should prefer the configuration of the existing optimizer
@@ -77,7 +76,6 @@ class _Optimizer(object):
             # override learning rate, momentum, etc. with latest values
             for group in self.optimizer.param_groups:
                 group.update(optimizer_overrides)
-    '''
 
     def backward(self, loss):
         """Computes the sum of gradients of the given tensor w.r.t. graph leaves."""

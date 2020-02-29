@@ -160,7 +160,7 @@ class Trainer(object):
         if self.args.optimizer == 'adam':
             self._optimizer = optim._Adam(self.args, params)
         else:
-            raise ValueError("unsupported optimizer")
+            raise ValueError("unsupported optimizer - {}".format(self.args.optimizer))
 
         '''
         if self.args.use_bmuf:
@@ -174,7 +174,7 @@ class Trainer(object):
         if self.args.lr_scheduler == 'PolynomialDecayScheduler':
             self._lr_scheduler = lr_scheduler.PolynomialDecayScheduler(self.args, self.optimizer)
         else:
-            raise ValueError("unsupported lr_scheduler")
+            raise ValueError("unsupported lr_scheduler - {}".format(self.args.lr_scheduler))
 
         self._lr_scheduler.step_update(0)
 
@@ -202,15 +202,16 @@ class Trainer(object):
         """Load all training state from a checkpoint file."""
         extra_state, self._optim_history, last_optim_state = None, [], None
 
-        '''
         if os.path.exists(filename):
             state = checkpoint_utils.load_checkpoint_to_cpu(filename)
 
             # load model parameters
             try:
                 self.get_model().load_state_dict(state['model'], strict=True)
+                '''
                 if utils.has_parameters(self.get_criterion()):
                     self.get_criterion().load_state_dict(state['criterion'], strict=True)
+                '''
             except Exception:
                 raise Exception(
                     'Cannot load model parameters from checkpoint {}; '
@@ -220,17 +221,17 @@ class Trainer(object):
             extra_state = state['extra_state']
             self._optim_history = state['optimizer_history']
             last_optim_state = state.get('last_optimizer_state', None)
-        '''
 
-        '''
         if last_optim_state is not None and not reset_optimizer:
             # rebuild optimizer after loading model, since params may have changed
             self._build_optimizer()
 
             # only reload optimizer and lr_scheduler if they match
             last_optim = self._optim_history[-1]
+            '''
             assert last_optim['criterion_name'] == self.get_criterion().__class__.__name__, \
                 'Criterion does not match; please reset the optimizer (--reset-optimizer).'
+            '''
             assert last_optim['optimizer_name'] == self.optimizer.__class__.__name__, \
                 'Optimizer does not match; please reset the optimizer (--reset-optimizer).'
 
@@ -239,10 +240,8 @@ class Trainer(object):
             self.optimizer.load_state_dict(last_optim_state, optimizer_overrides)
 
             self.set_num_updates(last_optim['num_updates'])
-        '''
 
         if extra_state is not None:
-            '''
             epoch = extra_state['train_iterator']['epoch']
             print('| loaded checkpoint {} (epoch {} @ {} updates)'.format(
                 filename, epoch, self.get_num_updates()))
@@ -257,8 +256,6 @@ class Trainer(object):
                 for meter in self.meters.values():
                     if isinstance(meter, TimeMeter):
                         meter.reset()
-            '''
-            pass
         else:
             print('| no existing checkpoint found {}'.format(filename))
 
@@ -608,11 +605,9 @@ class Trainer(object):
         """Get the current learning rate."""        # #TODO: optimizer
         return self.optimizer.get_lr()
 
-    '''
     def get_model(self):
         """Get the (non-wrapped) model instance."""
         return self._model
-    '''
 
     '''
     def get_criterion(self):

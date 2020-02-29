@@ -131,11 +131,9 @@ class EpochBatchIterator(EpochBatchIterating):
         self.dataset.set_epoch(self.epoch)
         return self._cur_epoch_itr
 
-    '''
     def end_of_epoch(self) -> bool:
         """Returns whether the most recent epoch iterator has been exhausted"""
         return not self._cur_epoch_itr.has_next()
-    '''
 
     @property
     def iterations_in_epoch(self):
@@ -146,16 +144,13 @@ class EpochBatchIterator(EpochBatchIterating):
             return self._next_epoch_itr.count
         return 0
 
-    '''
     def state_dict(self):
         """Returns a dictionary containing a whole state of the iterator."""
         return {
             'epoch': self.epoch,
             'iterations_in_epoch': self.iterations_in_epoch,
         }
-    '''
 
-    '''
     def load_state_dict(self, state_dict):
         """Copies the state of the iterator from the given *state_dict*."""
         self.epoch = state_dict['epoch']
@@ -167,7 +162,6 @@ class EpochBatchIterator(EpochBatchIterating):
                 shuffle=state_dict.get('shuffle', True),
                 offset=itr_pos,
             )
-    '''
 
     def _get_iterator_for_epoch(self, epoch, shuffle, fix_batches_to_gpus=False, offset=0):
 

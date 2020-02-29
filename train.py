@@ -32,11 +32,9 @@ def main(args, init_distributed=False):
     if init_distributed:
         args.distributed_rank = distributed_utils.distributed_init(args)
 
-    '''
-    # #ignore-ckpt-now 1
     if distributed_utils.is_master(args):
         checkpoint_utils.verify_checkpoint_directory(args.save_dir)
-    '''
+
     print(args, flush=True)
 
     # Setup task, e.g., translation, language modeling, etc.
@@ -53,10 +51,8 @@ def main(args, init_distributed=False):
     model = task.build_model(args)                  # ***TODO bert model ***
     # criterion = task.build_criterion(args)
     # ignore criterion now, maybe push back in the future, leave all the things with criterion commented
-    # criterion = None
 
-    # ori:
-    # print(model)
+    print(model)
 
     # ori:
     #print('| model {}, criterion {}'.format(args.arch, criterion.__class__.__name__))

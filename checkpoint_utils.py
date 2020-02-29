@@ -118,13 +118,10 @@ def load_checkpoint(args, trainer):
     '''
 
     if extra_state is not None and not args.reset_dataloader:
-        '''
         # restore iterator from checkpoint
         itr_state = extra_state['train_iterator']
         epoch_itr = trainer.get_train_iterator(epoch=itr_state['epoch'], load_dataset=True)
         epoch_itr.load_state_dict(itr_state)
-        '''
-        pass
     else:
         epoch_itr = trainer.get_train_iterator(epoch=0, load_dataset=True)
 
@@ -132,7 +129,7 @@ def load_checkpoint(args, trainer):
 
     return extra_state, epoch_itr
 
-'''
+
 def load_checkpoint_to_cpu(path, arg_overrides=None):
     """Loads a checkpoint to CPU (with upgrading for backward compatibility)."""
     state = torch.load(
@@ -142,9 +139,9 @@ def load_checkpoint_to_cpu(path, arg_overrides=None):
     if arg_overrides is not None:
         for arg_name, arg_val in arg_overrides.items():
             setattr(args, arg_name, arg_val)
-    state = _upgrade_state_dict(state)
+    # state = _upgrade_state_dict(state)
     return state
-'''
+
 
 '''
 def load_model_ensemble(filenames, arg_overrides=None, task=None):
@@ -355,7 +352,7 @@ def load_pretrained_component_from_model(
     return component
 '''
 
-'''
+
 def verify_checkpoint_directory(save_dir: str) -> None:
     if not os.path.exists(save_dir):
         os.makedirs(save_dir, exist_ok=True)
@@ -368,4 +365,3 @@ def verify_checkpoint_directory(save_dir: str) -> None:
         raise e
     else:
         os.remove(temp_file_path)
-'''
