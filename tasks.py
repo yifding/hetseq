@@ -50,6 +50,7 @@ class Task(object):
                 token = token.strip()
                 vocab[token] = index
                 index += 1
+        print('| loaded dictionary with {} subwords  from: {}'.format(index, vocab_file))
         return vocab
 
     '''
@@ -524,6 +525,8 @@ class LanguageModelingTask(Task):
             datasets.append(BertH5pyData(f))
 
         dataset = ConBertH5pyData(datasets)
+
+        print('| loaded {} sentences from: {}'.format(len(dataset), path))
 
         self.datasets[split] = dataset
 

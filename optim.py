@@ -283,6 +283,7 @@ class Adam(torch.optim.Optimizer):
                     p_data_fp32.add_(-group['weight_decay'] * group['lr'], p_data_fp32)
 
                 p_data_fp32.addcdiv_(-step_size, exp_avg, denom)
+                #p_data_fp32.addcdiv_(step_size, exp_avg, denom)
 
                 p.data.copy_(p_data_fp32)
 

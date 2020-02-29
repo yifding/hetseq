@@ -149,20 +149,18 @@ def train(args, trainer, task, epoch_itr):                  # #revise-task 7
     max_update = args.max_update or math.inf
 
     # #WORKING
+    '''
     if distributed_utils.is_master(args):
         loop = tqdm(enumerate(progress, start=epoch_itr.iterations_in_epoch))
     else:
         loop = enumerate(progress, start=epoch_itr.iterations_in_epoch)
+    '''
 
-    #loop = enumerate(progress, start=epoch_itr.iterations_in_epoch)
+    loop = enumerate(progress, start=epoch_itr.iterations_in_epoch)
     #loop = enumerate(itr)
 
     for i, samples in loop:
-        #print('samples', type(samples))
-        #print(len(samples),len(samples[0]), len(samples[0][0]))
-        #print(samples[0])
-        #continue
-
+        '''
         print(i, "rank", args.distributed_rank, flush=True)
         print(i, "rank", args.distributed_rank, len(samples), flush=True)
         if samples[0] is None:
@@ -170,13 +168,14 @@ def train(args, trainer, task, epoch_itr):                  # #revise-task 7
         else:
             print(i, "rank", args.distributed_rank, len(samples), len(samples[0]), len(samples[0][0]), flush=True)
         sys.stdout.flush()
+        '''
 
         log_output = trainer.train_step(samples)
         if log_output is None:
             continue
 
         # log mid-epoch stats
-        '''
+
         stats = get_training_stats(trainer)
         for k, v in log_output.items():
             if k in ['loss', 'nll_loss', 'ntokens', 'nsentences', 'sample_size']:
@@ -192,7 +191,6 @@ def train(args, trainer, task, epoch_itr):                  # #revise-task 7
         if i == 0:
             trainer.get_meter('wps').reset()
             trainer.get_meter('ups').reset()
-        '''
 
         num_updates = trainer.get_num_updates()
         '''
@@ -209,7 +207,7 @@ def train(args, trainer, task, epoch_itr):                  # #revise-task 7
         if num_updates >= max_update:
             break
 
-'''
+
 def get_training_stats(trainer):
     stats = collections.OrderedDict()
     stats['loss'] = trainer.get_meter('train_loss')     # #training loss
@@ -233,7 +231,6 @@ def get_training_stats(trainer):
     stats['wall'] = round(trainer.get_meter('wall').elapsed_time)       # #walk time
     stats['train_wall'] = trainer.get_meter('train_wall')       # #training walk time
     return stats
-'''
 
 '''
 def validate(args, trainer, task, epoch_itr, subsets):

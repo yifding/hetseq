@@ -62,7 +62,8 @@ def format_stat(stat):
     elif isinstance(stat, TimeMeter):
         stat = '{:g}'.format(round(stat.avg))
     elif isinstance(stat, StopwatchMeter):
-        stat = '{:g}'.format(round(stat.sum))
+        #stat = '{:g}'.format(round(stat.sum))
+        stat = '{:.4f}'.format(stat.sum)
     return stat
 
 
@@ -177,7 +178,6 @@ class noop_progress_bar(progress_bar):
         pass
 
 
-'''
 class simple_progress_bar(progress_bar):
     """A minimal logger for non-TTY environments."""
 
@@ -204,7 +204,7 @@ class simple_progress_bar(progress_bar):
         """Print end-of-epoch stats."""
         postfix = self._str_pipes(self._format_stats(stats))
         print('{} | {}'.format(self.prefix, postfix), flush=True)
-'''
+
 
 '''
 class tqdm_progress_bar(progress_bar):

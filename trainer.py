@@ -485,8 +485,10 @@ class Trainer(object):
                 self.meters['train_acc'].update(
                     logging_output.get('acc', 0), sample_size)
 
+            '''
             if 'nll_loss' in logging_output:
                 self.meters['train_nll_loss'].update(logging_output.get('nll_loss', 0), ntokens)
+            '''
         except OverflowError as e:
             print('| WARNING: overflow detected, ' + str(e))
             self.zero_grad()
@@ -618,13 +620,11 @@ class Trainer(object):
         return self._criterion
     '''
 
-    '''
     def get_meter(self, name):
         """Get a specific meter by name."""
         if name not in self.meters:
             return None
         return self.meters[name]
-    '''
 
     def get_num_updates(self):
         """Get the number of parameters updates."""
