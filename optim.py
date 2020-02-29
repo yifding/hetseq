@@ -57,11 +57,9 @@ class _Optimizer(object):
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
 
-    '''
     def state_dict(self):
         """Return the optimizer's state dict."""
         return self.optimizer.state_dict()
-    '''
 
     def load_state_dict(self, state_dict, optimizer_overrides=None):
         """Load an optimizer state dict.

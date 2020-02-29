@@ -14,9 +14,9 @@ from torch.serialization import default_restore_location
 from fairseq.models import FairseqEncoder, FairseqDecoder
 '''
 
-'''
+
 def save_checkpoint(args, trainer, epoch_itr, val_loss):
-    from fairseq import distributed_utils, meters
+    import distributed_utils, meters
 
     prev_best = getattr(save_checkpoint, 'best', val_loss)
     if val_loss is not None:
@@ -85,7 +85,6 @@ def save_checkpoint(args, trainer, epoch_itr, val_loss):
         for old_chk in checkpoints[args.keep_last_epochs:]:
             if os.path.lexists(old_chk):
                 os.remove(old_chk)
-'''
 
 
 def load_checkpoint(args, trainer):
@@ -107,15 +106,15 @@ def load_checkpoint(args, trainer):
         reset_meters=args.reset_meters,
     )
 
-    '''
-    if (
+
+    if(
         extra_state is not None
         and 'best' in extra_state
         and not args.reset_optimizer
         and not args.reset_meters
     ):
         save_checkpoint.best = extra_state['best']
-    '''
+
 
     if extra_state is not None and not args.reset_dataloader:
         # restore iterator from checkpoint
@@ -177,7 +176,7 @@ def load_model_ensemble_and_task(filenames, arg_overrides=None, task=None):
     return ensemble, args, task
 '''
 
-'''
+
 def checkpoint_paths(path, pattern=r'checkpoint(\d+)\.pt'):
     """Retrieves all checkpoints found in `path` directory.
     Checkpoints are identified by matching filename to the specified pattern. If
@@ -194,9 +193,8 @@ def checkpoint_paths(path, pattern=r'checkpoint(\d+)\.pt'):
             idx = int(m.group(1)) if len(m.groups()) > 0 else i
             entries.append((idx, m.group(0)))
     return [os.path.join(path, x[1]) for x in sorted(entries, reverse=True)]
-'''
 
-'''
+
 def torch_persistent_save(*args, **kwargs):
     for i in range(3):
         try:
@@ -204,9 +202,8 @@ def torch_persistent_save(*args, **kwargs):
         except Exception:
             if i == 2:
                 logging.error(traceback.format_exc())
-'''
 
-'''
+
 def convert_state_dict_type(state_dict, ttype=torch.FloatTensor):
     if isinstance(state_dict, dict):
         cpu_dict = OrderedDict()
@@ -219,14 +216,13 @@ def convert_state_dict_type(state_dict, ttype=torch.FloatTensor):
         return state_dict.type(ttype)
     else:
         return state_dict
-'''
 
 '''
 def save_state(
     filename, args, model_state_dict, criterion, optimizer, lr_scheduler,
     num_updates, optim_history=None, extra_state=None,
 ):
-    from fairseq import utils
+    import utils
     if optim_history is None:
         optim_history = []
     if extra_state is None:
@@ -250,6 +246,34 @@ def save_state(
         state_dict['last_optimizer_state'] = convert_state_dict_type(optimizer.state_dict())
     torch_persistent_save(state_dict, filename)
 '''
+
+
+def save_state(
+    #criterion = None
+    filename, args, model_state_dict, criterion, optimizer, lr_scheduler,
+    num_updates, optim_history=None, extra_state=None,
+):
+    if optim_history is None:
+        optim_history = []
+    if extra_state is None:
+        extra_state = {}
+    state_dict = {
+        'args': args,
+        'model': model_state_dict if model_state_dict else {},
+        'optimizer_history': optim_history + [
+            {
+                #'criterion_name': criterion.__class__.__name__,
+                'optimizer_name': optimizer.__class__.__name__,
+                'lr_scheduler_state': lr_scheduler.state_dict(),
+                'num_updates': num_updates,
+            }
+        ],
+        'extra_state': extra_state,
+    }
+    if not args.no_save_optimizer_state:
+        state_dict['last_optimizer_state'] = convert_state_dict_type(optimizer.state_dict())
+    torch_persistent_save(state_dict, filename)
+
 
 '''
 def _upgrade_state_dict(state):

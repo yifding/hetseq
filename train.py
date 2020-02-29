@@ -109,10 +109,8 @@ def main(args, init_distributed=False):
         lr = trainer.lr_step(epoch_itr.epoch, valid_losses[0])
 
         # save checkpoint
-        '''
         if epoch_itr.epoch % args.save_interval == 0:
             checkpoint_utils.save_checkpoint(args, trainer, epoch_itr, valid_losses[0])
-        '''
 
         reload_dataset = ':' in getattr(args, 'data', '')
         # sharded data: get train iterator for next epoch
@@ -227,6 +225,7 @@ def get_training_stats(trainer):
     stats['wall'] = round(trainer.get_meter('wall').elapsed_time)       # #walk time
     stats['train_wall'] = trainer.get_meter('train_wall')       # #training walk time
     return stats
+
 
 '''
 def validate(args, trainer, task, epoch_itr, subsets):

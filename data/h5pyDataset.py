@@ -63,9 +63,9 @@ class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether suppo
             self.data_file.close()     #encounter bug, don't know how to fix it
 
     def __len__(self):
-        return self._len
+        # return self._len
         # debug
-        # return 11
+        return 11
 
     def size(self, idx: int):
         """

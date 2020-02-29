@@ -8,11 +8,15 @@ import sys
 import torch
 from torch.nn.parallel.distributed import DistributedDataParallel as DDP
 
-import distributed_utils
+import utils
 import optim
 import lr_scheduler
+import checkpoint_utils
+import distributed_utils
+
+
 from meters import AverageMeter, StopwatchMeter, TimeMeter
-import utils
+
 
 
 class Trainer(object):
@@ -178,18 +182,22 @@ class Trainer(object):
 
         self._lr_scheduler.step_update(0)
 
-
-    '''
     def save_checkpoint(self, filename, extra_state):
         """Save all training state in a checkpoint file."""
         if distributed_utils.is_master(self.args):  # only save one checkpoint
             extra_state['train_meters'] = self.meters
+            ''' ori
             checkpoint_utils.save_state(
                 filename, self.args, self.get_model().state_dict(), self.get_criterion(),
                 self.optimizer, self.lr_scheduler, self.get_num_updates(),
                 self._optim_history, extra_state,
             )
-    '''
+            '''
+            checkpoint_utils.save_state(
+                filename, self.args, self.get_model().state_dict(), None,
+                self.optimizer, self.lr_scheduler, self.get_num_updates(),
+                self._optim_history, extra_state,
+            )
 
     def load_checkpoint(
         self,
@@ -658,7 +666,8 @@ class Trainer(object):
             torch.cuda.manual_seed(seed)
 
     def _sync_stats(self):
-        ''' ori:
+        """
+        ori:
         return (
             self.args.distributed_world_size > 1 and
             (
@@ -669,7 +678,7 @@ class Trainer(object):
                 )
             )
         )
-        '''
+        """
         return (
                 self.args.distributed_world_size > 1
         )

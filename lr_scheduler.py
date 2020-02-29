@@ -20,17 +20,13 @@ class _LRScheduler(object):
         pass
     '''
 
-    '''
     def state_dict(self):
         """Return the LR scheduler state dict."""
         return {'best': self.best}
-    '''
 
-    '''
     def load_state_dict(self, state_dict):
         """Load an LR scheduler state dict."""
         self.best = state_dict['best']
-    '''
 
     def step(self, epoch, val_loss=None):
         """Update the learning rate at the end of the given epoch."""

@@ -9,7 +9,7 @@ def get_training_parser(task='bert'):
                         help='pseudo random number generator seed')
     parser.add_argument('--cpu', action='store_true', help='use CPU instead of CUDA')
     # parser.add_argument('--fp16', action='store_true', help='use FP16')
-    parser.add_argument('--log-interval', type=int, default=10, metavar='N',
+    parser.add_argument('--log-interval', type=int, default=1, metavar='N',
                         help='log progress every N batches (when progress bar is disabled)')
     parser.add_argument('--log-format', default='simple',
                         help='log format to use',
@@ -238,7 +238,7 @@ def add_checkpoint_args(parser):
     group.add_argument('--save-interval-updates', type=int, default=0, metavar='N',
                        help='save a checkpoint (and validate) every N updates')
 
-    '''
+
     #checkpoints saving options
     group.add_argument('--keep-interval-updates', type=int, default=-1, metavar='N',
                        help='keep the last N checkpoints saved with --save-interval-updates')
@@ -257,7 +257,7 @@ def add_checkpoint_args(parser):
     group.add_argument('--maximize-best-checkpoint-metric', action='store_true',
                        help='select the largest metric value for saving "best" checkpoints')
     # fmt: on
-    '''
+
     return group
 
 
