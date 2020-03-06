@@ -20,14 +20,21 @@ class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether suppo
         self.path = path
         self.read_data(path)
 
+    '''
     def read_data(self, path):
-        self.data_file = h5py.File(path, "r", libver='latest', swmr=True)
+        h5py.File(path, "r", libver='latest', swmr=True)
         self._len = len(self.data_file[self.keys[0]])
+    '''
+
+    def read_data(self, path):
+        with h5py.File(path, "r", libver='latest', swmr=True) as data_file:
+            self._len = len(data_file[self.keys[0]])
 
     def check_index(self, i):
         if i < 0 or i >= self._len:
             raise IndexError('index out of range')
 
+    '''
     @lru_cache(maxsize=8)
     def __getitem__(self, index):
         if not self.data_file:
@@ -50,6 +57,7 @@ class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether suppo
 
         return [input_ids, segment_ids, input_mask,
                 masked_lm_labels, next_sentence_labels]
+    '''
 
     '''
     loss = model(input_ids=input_ids, token_type_ids=segment_ids, attention_mask=input_mask,
@@ -57,15 +65,37 @@ class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether suppo
                  checkpoint_activations=args.checkpoint_activations)
     '''
 
+    @lru_cache(maxsize=8)
+    def __getitem__(self, index):
+        with h5py.File(self.path, "r", libver='latest', swmr=True) as data_file:
+            self.check_index(index)
+
+            inputs = [data_file[key][index] for key in self.keys]
+
+            [input_ids, input_mask, segment_ids, masked_lm_positions, masked_lm_ids, next_sentence_labels] = [
+                torch.from_numpy(input.astype(np.int64)) if indice < 5 else torch.from_numpy(
+                    np.asarray(input.astype(np.int64))) for indice, input in enumerate(inputs)]
+
+            masked_lm_labels = torch.ones(input_ids.shape, dtype=torch.long) * -1
+            index = self.max_pred_length
+            # store number of  masked tokens in index
+            padded_mask_indices = (masked_lm_positions == 0).nonzero()
+            if len(padded_mask_indices) != 0:
+                index = padded_mask_indices[0].item()
+            masked_lm_labels[masked_lm_positions[:index]] = masked_lm_ids[:index]
+
+            return [input_ids, segment_ids, input_mask,
+                    masked_lm_labels, next_sentence_labels]
+
     def __del__(self):
         if self.data_file:
             self.data_file.flush()
             self.data_file.close()     #encounter bug, don't know how to fix it
 
     def __len__(self):
-        # return self._len
+        return self._len
         # debug
-        return 11
+        # return 11
 
     def size(self, idx: int):
         """

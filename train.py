@@ -1,6 +1,6 @@
 __AUTHOR__ = "Yifan Ding"
 __E_MAIL__ = "dyf0125@gmail.com"
-__DATE__ = "1/31/2019"
+__DATE__ = "1/31/2020"
 
 import sys
 import math
@@ -52,7 +52,7 @@ def main(args, init_distributed=False):
     # criterion = task.build_criterion(args)
     # ignore criterion now, maybe push back in the future, leave all the things with criterion commented
 
-    print(model)
+    #print(model)
 
     # ori:
     #print('| model {}, criterion {}'.format(args.arch, criterion.__class__.__name__))

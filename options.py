@@ -69,6 +69,9 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
             group.add_argument('--max_pred_length', type=int, default=512,
                                help='max number of tokens in a sentence')
 
+            group.add_argument('--num_file', type=int, default=0,
+                               help='number of file to run, 0 for all')
+
 
     '''
     if gen:

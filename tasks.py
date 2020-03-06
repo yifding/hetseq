@@ -162,10 +162,12 @@ class Task(object):
         '''
 
         # create mini-batches with given size constraints
+        print('| build batch sampler')
         batch_sampler = data_utils.batch_by_size(
             indices, dataset.num_tokens, max_tokens=max_tokens, max_sentences=max_sentences,
             required_batch_size_multiple=required_batch_size_multiple,
         )
+        print('| finish building batch sampler')
 
         # return a reusable, sharded iterator
         epoch_iter = iterators.EpochBatchIterator(
@@ -516,7 +518,8 @@ class LanguageModelingTask(Task):
         files = sorted([f for f in files if split in f])
 
         # # debug
-        files = files[0:1]
+        if self.args.num_file > 0:
+            files = files[0:self.args.num_file]
 
         assert len(files) > 0, "no suitable file in split ***{}***".format(split)
 
@@ -526,9 +529,10 @@ class LanguageModelingTask(Task):
 
         dataset = ConBertH5pyData(datasets)
 
-        print('| loaded {} sentences from: {}'.format(len(dataset), path))
+        print('| loaded {} sentences from: {}'.format(len(dataset), path), flush=True)
 
         self.datasets[split] = dataset
+        #print('| load finished')
 
 
     '''
