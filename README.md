@@ -19,16 +19,18 @@ The code has been tested running under Python 3.7.4. The required packages are a
 * python-dateutil == 2.8.0
 
 ## Recommended install step with conda
-* conda create --name distribute_bert
-* conda activate distribute_bert
-* conda install python=3.7.4
+```
+$ conda create --name distribute_bert
+$ conda activate distribute_bert
+$ conda install python=3.7.4
 
-* git clone url (TODO)
-* cd url_directory (TODO)
-* pip install -r requirement.txt 
-* pip install --editable . 
-* download extra data from google drive [here](https://drive.google.com/file/d/) (TODO)
-* unzip file in the url_directory (TODO)
+$ git clone url (TODO)
+$ cd url_directory (TODO)
+$ pip install -r requirement.txt 
+$ pip install --editable . 
+$ download extra data from google drive [here](https://drive.google.com/file/d/) (TODO)
+$ unzip file in the url_directory (TODO)
+```
 
 ## data stats and source (TODO)
 
