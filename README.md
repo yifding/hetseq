@@ -19,7 +19,7 @@ The code has been tested running under Python 3.7.4. The required packages are a
 * python-dateutil == 2.8.0
 
 ## Preparation for the reporsitory
-1) Install packages with conda virtual environment wity Python 3.7.4 (recommended)
+1) create and activate conda virtual environment wity Python 3.7.4 (recommended)
 ```
 $ conda create --name distribute_bert
 $ conda activate distribute_bert
