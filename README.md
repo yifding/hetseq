@@ -156,14 +156,58 @@ python3 ${DIST}/train.py  \
 * BERT-base: preprocessing/uncased_L-12_H-768_A-12
 * BERT-large: preprocessing/uncased_L-24_H-1024_A-16
 
-## Portable components (TODO)
+## Components (TODO)
+### Portable 
+* tasks: BERT (default) ```tasks.py```
+* optimizer: Adam (default) ```optim.py```
+* learning rate scheduler: Polynomial Decay Scheduler (default) ```lr_scheduler.py```
+* dataset: BERT h5py dataset (default) ```data/h5pyDataset.py```
+
+### Core
+* BERT model: ```bert_modeling.py```
+* main train code: ```train.py```
+* distrbuted training code: ```trainer.py```
+
+### Supporting
+* utils: ```utils.py```
+* file utils: ```file_utils.py```
+* checkpoints utils: ```checkpoint_utils.py```
+* distributed utils: ```distributed_utils.py``` (IMPORTANT)
+
 
 ## Parameter explanation (TODO)
+```
+usage:  [-h] [--no-progress-bar] [--seed N] [--cpu] [--log-interval N][--log-format {none,simple}] 
+        [--num-workers N] [--max-tokens N] [--max-sentences N] [--required-batch-size-multiple N] 
+        [--train-subset SPLIT] [--valid-subset SPLIT] [--validate-interval N] [--disable-validation] 
+        [--max-tokens-valid N] [--max-sentences-valid N] [--curriculum N] [--task TASK] [--data DATA] 
+        [--dict PATH of a file] [--config_file PATH of a file] [--max_pred_length MAX_PRED_LENGTH] 
+        [--num_file NUM_FILE] [--distributed-world-size N] [--distributed-rank DISTRIBUTED_RANK] 
+        [--distributed-gpus DISTRIBUTED_GPUS] [--distributed-backend DISTRIBUTED_BACKEND] 
+        [--distributed-init-method DISTRIBUTED_INIT_METHOD] [--device-id DEVICE_ID] 
+        [--distributed-no-spawn] [--ddp-backend {c10d}] [--bucket-cap-mb MB] [--fix-batches-to-gpus] 
+        [--find-unused-parameters] [--fast-stat-sync] [--max-epoch N] [--max-update N] 
+        [--clip-norm NORM] [--update-freq N1,N2,...,N_K] [--lr LR_1,LR_2,...,LR_N] [--min-lr LR] 
+        [--use-bmuf] [--optimizer OPTIMIZER] [--adam-betas B] [--adam-eps D] [--weight-decay WD] 
+        [--lr_scheduler LR_SCHEDULER] [--force-anneal N] [--warmup-updates N] 
+        [--end-learning-rate END_LEARNING_RATE] [--power POWER] [--total-num-update TOTAL_NUM_UPDATE] 
+        [--save-dir DIR] [--restore-file RESTORE_FILE] [--reset-dataloader] [--reset-lr-scheduler] 
+        [--reset-meters] [--reset-optimizer] [--optimizer-overrides DICT] [--save-interval N]
+        [--save-interval-updates N] [--keep-interval-updates N] [--keep-last-epochs N] [--no-save] 
+        [--no-epoch-checkpoints] [--no-last-checkpoints] [--no-save-optimizer-state] 
+        [--best-checkpoint-metric BEST_CHECKPOINT_METRIC] [--maximize-best-checkpoint-metric]
+```
 
-## Performance table (TODO)
 
-### Notice and tips
-> loading data may take a long time 
+## Performance table
+| nodes | GPUs | epochs | batch size | steps   | avg. time per step | training time | training loss | expansion | speedup |
+|-------|------|--------|------------|---------|--------------------|---------------|---------------|-----------|---------|
+| 1     | 4    | 5      | 128        | 267,139 | 2.60s              | 7.19d         | 0.026         | 1         | 1       |
+| 2     | 8    | 5      | 256        | 133,570 | 2.69s              | 4.19d         | 0.028         | 0.86      | 1.72    |
+| 4     | 16   | 5      | 512        | 66,785  | 2.794              | 2.23d         | 0.031         | 0.81      | 3.22    |
+
+## Notice and tips
+> loading data may take a while. 
 
 ## License
 this repository is MIT-licensed. It is created based on [fairseq](https://github.com/pytorch/fairseq), 
