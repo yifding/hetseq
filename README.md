@@ -200,12 +200,11 @@ usage:  [-h] [--no-progress-bar] [--seed N] [--cpu] [--log-interval N][--log-for
 
 
 ## Performance table
-| nodes | GPUs | epochs | batch size | steps   | avg. time per step | training time | training loss | expansion | speedup |
-|-------|------|--------|------------|---------|--------------------|---------------|---------------|-----------|---------|
-| 1     | 4    | 5      | 128        | 267,139 | 2.60s              | 7.19d         | 0.026         | 1         | 1       |
-| 2     | 8    | 5      | 256        | 133,570 | 2.69s              | 4.19d         | 0.028         | 0.86      | 1.72    |
-| 4     | 16   | 5      | 512        | 66,785  | 2.794              | 2.23d         | 0.031         | 0.81      | 3.22    |
-
+| nodes | GPUs | epochs | batch size |  steps  | avg. time per step | training time | training loss | expansion | speedup |
+|:-----:|:----:|:------:|:----------:|:-------:|:------------------:|:-------------:|:-------------:|:---------:|:-------:|
+|   1   |   4  |    5   |     128    | 267,139 |        2.60s       |     7.19d     |     0.026     |     1     |    1    |
+|   2   |   8  |    5   |     256    | 133,570 |        2.69s       |     4.19d     |     0.028     |    0.86   |   1.72  |
+|   4   |  16  |    5   |     512    |  66,785 |        2.794       |     2.23d     |     0.031     |    0.81   |   3.22  |
 ## Notice and tips
 > loading data may take a while. 
 
