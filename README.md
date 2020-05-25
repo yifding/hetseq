@@ -143,7 +143,6 @@ python3 ${DIST}/train.py  \
 2>&1 | node4gpu4_sub3.log
 ```
 
-
 ## Available corpus under ```preprocessing/```, 
 * phase one of BERT training corpus : ```preprocessing/hdf5_lower_case_1_seq_len_128.../wikicorpus_en/```
 * phase two of BERT training corpus : ```preprocessing/hdf5_lower_case_1_seq_len_512.../wikicorpus_en/```
@@ -157,9 +156,11 @@ python3 ${DIST}/train.py  \
 * BERT-base: preprocessing/uncased_L-12_H-768_A-12
 * BERT-large: preprocessing/uncased_L-24_H-1024_A-16
 
-## portable components (TODO)
+## Portable components (TODO)
 
-## performance table (TODO)
+## Parameter explanation (TODO)
+
+## Performance table (TODO)
 
 ### Notice and tips
 > loading data may take a long time 
