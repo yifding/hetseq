@@ -34,7 +34,7 @@ $ pip install -r requirement.txt
 $ pip install --editable . 
 ```
 
-3) Download data files including training corpus, model configuration, and BPE dictionary. Test corpus from [here](https://drive.google.com/file/d/1ZPJVAiV7PsewChi7xKACrjuniJ2N9Sry/view?usp=sharing), full data from [this link](https://drive.google.com/file/d/). Download test_DATA.zip for test or DATA.zip for full run, unzip it and place the ```preprocessing/``` directory inside the package directory
+3) Download data files including training corpus, model configuration, and BPE dictionary. Test corpus from [here](https://drive.google.com/file/d/1ZPJVAiV7PsewChi7xKACrjuniJ2N9Sry/view?usp=sharing), full data from [this link](https://drive.google.com/file/d/1Vq_UO-T9345uYs8a7zloukGfhDXSDd2A/view?usp=sharing). Download test_DATA.zip for test or DATA.zip for full run, unzip it and place the ```preprocessing/``` directory inside the package directory
 
 
 ## Example to Run the Codes
@@ -156,7 +156,7 @@ python3 ${DIST}/train.py  \
 * BERT-base: preprocessing/uncased_L-12_H-768_A-12
 * BERT-large: preprocessing/uncased_L-24_H-1024_A-16
 
-## Components (TODO)
+## Components
 ### Portable 
 * tasks: BERT (default) ```tasks.py```
 * optimizer: Adam (default) ```optim.py```
