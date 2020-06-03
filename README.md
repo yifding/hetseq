@@ -1,4 +1,4 @@
-# BERT at a University: Distributed GPU training on Heterogeneous Systems
+# HetSeq: Distributed GPU Training on Heterogeneous Infrastructure
 This is our coding implementation for the paper:
 
 >Yifan Ding, Nicholas Botzer, Tim Weninger (2020). 
