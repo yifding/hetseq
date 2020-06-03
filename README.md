@@ -2,7 +2,7 @@
 This is our coding implementation for the paper:
 
 >Yifan Ding, Nicholas Botzer, Tim Weninger (2020). 
-BERT at a University: Distributed GPU training on Heterogeneous Systems, to appear.
+HetSeq: Distributed GPU Training on Heterogeneous Infrastructure, to appear.
 
 Author: Yifan Ding (yding4@nd.edu)
 
@@ -48,7 +48,7 @@ $ DIST=~/Distributed_BERT/
 ```
 python3 ${DIST}/train.py  \
 --task bert   --data {DIST}/preprocessing/test_128/ \
---dict {DIST}/preprocessing//uncased_L-12_H-768_A-12/vocab.txt  \
+--dict {DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
 --config_file {DIST}/preprocessing//uncased_L-12_H-768_A-12/bert_config.json  \
 --max-sentences 32  --fast-stat-sync --max-update 900000 --update-freq 4  \
 --valid-subset test --num-workers 4 \
@@ -61,7 +61,7 @@ python3 ${DIST}/train.py  \
 ```
 python3 ${DIST}/train.py  \
 --task bert   --data {DIST}/preprocessing/test_128/ \
---dict {DIST}/preprocessing//uncased_L-12_H-768_A-12/vocab.txt  \
+--dict {DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
 --config_file {DIST}/preprocessing//uncased_L-12_H-768_A-12/bert_config.json  \
 --max-sentences 32  --fast-stat-sync --max-update 900000 --update-freq 4  \
 --valid-subset test --num-workers 4 \
@@ -79,7 +79,7 @@ $AD=10.00.123.456:11111
 ```
 python3 ${DIST}/train.py  \
 --task bert   --data {DIST}/preprocessing/test_128/ \
---dict {DIST}/preprocessing//uncased_L-12_H-768_A-12/vocab.txt  \
+--dict {DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
 --config_file {DIST}/preprocessing//uncased_L-12_H-768_A-12/bert_config.json  \
 --max-sentences 32  --fast-stat-sync --max-update 900000 --update-freq 4  \
 --valid-subset test --num-workers 4 \
@@ -96,7 +96,7 @@ python3 ${DIST}/train.py  \
 ```
 python3 ${DIST}/train.py  \
 --task bert   --data {DIST}/preprocessing/test_128/ \
---dict {DIST}/preprocessing//uncased_L-12_H-768_A-12/vocab.txt  \
+--dict {DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
 --config_file {DIST}/preprocessing//uncased_L-12_H-768_A-12/bert_config.json  \
 --max-sentences 32  --fast-stat-sync --max-update 900000 --update-freq 4  \
 --valid-subset test --num-workers 4 \
@@ -113,7 +113,7 @@ python3 ${DIST}/train.py  \
 ```
 python3 ${DIST}/train.py  \
 --task bert   --data {DIST}/preprocessing/test_128/ \
---dict {DIST}/preprocessing//uncased_L-12_H-768_A-12/vocab.txt  \
+--dict {DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
 --config_file {DIST}/preprocessing//uncased_L-12_H-768_A-12/bert_config.json  \
 --max-sentences 32  --fast-stat-sync --max-update 900000 --update-freq 4  \
 --valid-subset test --num-workers 4 \
@@ -130,7 +130,7 @@ python3 ${DIST}/train.py  \
 ```
 python3 ${DIST}/train.py  \
 --task bert   --data {DIST}/preprocessing/test_128/ \
---dict {DIST}/preprocessing//uncased_L-12_H-768_A-12/vocab.txt  \
+--dict {DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
 --config_file {DIST}/preprocessing//uncased_L-12_H-768_A-12/bert_config.json  \
 --max-sentences 32  --fast-stat-sync --max-update 900000 --update-freq 4  \
 --valid-subset test --num-workers 4 \
