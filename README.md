@@ -41,33 +41,32 @@ $ pip install --editable .
 Set the directory path to $DIST. 
 * For example, if the directory path is under the default path.
 ```
-$ DIST=~/hetseq/
+$ DIST=~/hetseq
 ```
 
 ### Single GPU
 ```
 python3 ${DIST}/train.py  \
---task bert   --data {DIST}/preprocessing/test_128/ \
---dict {DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
---config_file {DIST}/preprocessing//uncased_L-12_H-768_A-12/bert_config.json  \
+--task bert   --data ${DIST}/preprocessing/test_128/ \
+--dict ${DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
+--config_file ${DIST}/preprocessing/uncased_L-12_H-768_A-12/bert_config.json  \
 --max-sentences 32  --fast-stat-sync --max-update 900000 --update-freq 4  \
 --valid-subset test --num-workers 4 \
 --warmup-updates 10000  --total-num-update 1000000 --lr 0.0001  \
 --weight-decay 0.01 --distributed-world-size 1  \
---device-id 1 --save-dir sing_gpu_test  \
-2>&1 | sing_gpu_test.log
+--device-id 1 --save-dir sing_gpu
 ```
 ### Multiple GPU on a single Node, examples are all four GPUs on one Node. 
 ```
 python3 ${DIST}/train.py  \
---task bert   --data {DIST}/preprocessing/test_128/ \
---dict {DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
---config_file {DIST}/preprocessing//uncased_L-12_H-768_A-12/bert_config.json  \
+--task bert   --data ${DIST}/preprocessing/test_128/ \
+--dict ${DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
+--config_file ${DIST}/preprocessing/uncased_L-12_H-768_A-12/bert_config.json  \
 --max-sentences 32  --fast-stat-sync --max-update 900000 --update-freq 4  \
 --valid-subset test --num-workers 4 \
 --warmup-updates 10000  --total-num-update 1000000 --lr 0.0001  \
 --weight-decay 0.01 \
---save-dir node1gpu4  2>&1 | node1gpu4.log
+--save-dir node1gpu4
 ```
 
 ### Multiple GPU on multiple Nodes, examples are four nodes with four GPUs each.
@@ -78,69 +77,65 @@ $AD=10.00.123.456:11111
 2) on the main node, run:
 ```
 python3 ${DIST}/train.py  \
---task bert   --data {DIST}/preprocessing/test_128/ \
---dict {DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
---config_file {DIST}/preprocessing//uncased_L-12_H-768_A-12/bert_config.json  \
+--task bert   --data ${DIST}/preprocessing/test_128/ \
+--dict ${DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
+--config_file ${DIST}/preprocessing/uncased_L-12_H-768_A-12/bert_config.json  \
 --max-sentences 32  --fast-stat-sync --max-update 900000 --update-freq 4  \
 --valid-subset test --num-workers 4 \
 --warmup-updates 10000  --total-num-update 1000000 --lr 0.0001  \
---weight-decay 0.01 --save-dir node1gpu4  \
+--weight-decay 0.01 --save-dir node4gpu4  \
 --distributed-init-method tcp://{AD} \
 --distributed-world-size 16 \
 --distributed-gpus 4 \
---distributed-rank 0 \
-2>&1 | node4gpu4_main.log
+--distributed-rank 0
 ```
 3) on the other 3 nodes, run the same code except --distributed-rank and saving file name. 
 * 3-1) second node:
 ```
 python3 ${DIST}/train.py  \
---task bert   --data {DIST}/preprocessing/test_128/ \
---dict {DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
---config_file {DIST}/preprocessing//uncased_L-12_H-768_A-12/bert_config.json  \
+--task bert   --data ${DIST}/preprocessing/test_128/ \
+--dict ${DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
+--config_file ${DIST}/preprocessing/uncased_L-12_H-768_A-12/bert_config.json  \
 --max-sentences 32  --fast-stat-sync --max-update 900000 --update-freq 4  \
 --valid-subset test --num-workers 4 \
 --warmup-updates 10000  --total-num-update 1000000 --lr 0.0001  \
---weight-decay 0.01 --save-dir node1gpu4  \
+--weight-decay 0.01 --save-dir node4gpu4  \
 --distributed-init-method tcp://{AD} \
 --distributed-world-size 16 \
 --distributed-gpus 4 \
---distributed-rank 4 \
-2>&1 | node4gpu4_sub1.log
+--distributed-rank 4 
 ```
 
 * 3-2) third node:
 ```
 python3 ${DIST}/train.py  \
---task bert   --data {DIST}/preprocessing/test_128/ \
---dict {DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
---config_file {DIST}/preprocessing//uncased_L-12_H-768_A-12/bert_config.json  \
+--task bert   --data ${DIST}/preprocessing/test_128/ \
+--dict ${DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
+--config_file ${DIST}/preprocessing/uncased_L-12_H-768_A-12/bert_config.json  \
 --max-sentences 32  --fast-stat-sync --max-update 900000 --update-freq 4  \
 --valid-subset test --num-workers 4 \
 --warmup-updates 10000  --total-num-update 1000000 --lr 0.0001  \
---weight-decay 0.01 --save-dir node1gpu4  \
+--weight-decay 0.01 --save-dir node4gpu4  \
 --distributed-init-method tcp://{AD} \
 --distributed-world-size 16 \
 --distributed-gpus 4 \
---distributed-rank 8 \
-2>&1 | node4gpu4_sub2.log
+--distributed-rank 8
 ```
 
 * 3-3) fourth node:
 ```
 python3 ${DIST}/train.py  \
---task bert   --data {DIST}/preprocessing/test_128/ \
---dict {DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
---config_file {DIST}/preprocessing//uncased_L-12_H-768_A-12/bert_config.json  \
+--task bert   --data ${DIST}/preprocessing/test_128/ \
+--dict ${DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
+--config_file ${DIST}/preprocessing/uncased_L-12_H-768_A-12/bert_config.json  \
 --max-sentences 32  --fast-stat-sync --max-update 900000 --update-freq 4  \
 --valid-subset test --num-workers 4 \
 --warmup-updates 10000  --total-num-update 1000000 --lr 0.0001  \
---weight-decay 0.01 --save-dir node1gpu4  \
+--weight-decay 0.01 --save-dir node4gpu4  \
 --distributed-init-method tcp://{AD} \
 --distributed-world-size 16 \
 --distributed-gpus 4 \
---distributed-rank 12 \
-2>&1 | node4gpu4_sub3.log
+--distributed-rank 12
 ```
 
 ## Available corpus under ```preprocessing/```, 
