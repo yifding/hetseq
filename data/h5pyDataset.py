@@ -20,12 +20,6 @@ class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether suppo
         self.path = path
         self.read_data(path)
 
-    '''
-    def read_data(self, path):
-        h5py.File(path, "r", libver='latest', swmr=True)
-        self._len = len(self.data_file[self.keys[0]])
-    '''
-
     def read_data(self, path):
         with h5py.File(path, "r", libver='latest', swmr=True) as data_file:
             self._len = len(data_file[self.keys[0]])
@@ -34,36 +28,6 @@ class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether suppo
         if i < 0 or i >= self._len:
             raise IndexError('index out of range')
 
-    '''
-    @lru_cache(maxsize=8)
-    def __getitem__(self, index):
-        if not self.data_file:
-            self.read_data(self.path)
-        self.check_index(index)
-
-        inputs = [self.data_file[key][index] for key in self.keys]
-
-        [input_ids, input_mask, segment_ids, masked_lm_positions, masked_lm_ids, next_sentence_labels] = [
-            torch.from_numpy(input.astype(np.int64)) if indice < 5 else torch.from_numpy(
-                np.asarray(input.astype(np.int64))) for indice, input in enumerate(inputs)]
-
-        masked_lm_labels = torch.ones(input_ids.shape, dtype=torch.long) * -1
-        index = self.max_pred_length
-        # store number of  masked tokens in index
-        padded_mask_indices = (masked_lm_positions == 0).nonzero()
-        if len(padded_mask_indices) != 0:
-            index = padded_mask_indices[0].item()
-        masked_lm_labels[masked_lm_positions[:index]] = masked_lm_ids[:index]
-
-        return [input_ids, segment_ids, input_mask,
-                masked_lm_labels, next_sentence_labels]
-    '''
-
-    '''
-    loss = model(input_ids=input_ids, token_type_ids=segment_ids, attention_mask=input_mask,
-                 masked_lm_labels=masked_lm_labels, next_sentence_label=next_sentence_labels,
-                 checkpoint_activations=args.checkpoint_activations)
-    '''
 
     @lru_cache(maxsize=8)
     def __getitem__(self, index):
@@ -102,13 +66,6 @@ class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether suppo
         Return an example's size as a float or tuple.
         """
         return 512  # in our BERT preparation, the length is always 512
-
-    '''
-    def ordered_indices(self):
-        """Return an ordered list of indices. Batches will be constructed based
-        on this order."""
-        return np.arange(len(self))
-    '''
 
     def set_epoch(self, epoch):
         pass
@@ -176,31 +133,5 @@ class ConBertH5pyData(torch.utils.data.Dataset):
 
     def set_epoch(self, epoch):
         pass
-
-
-def test(split = "train"):
-    files = "/scratch365/yding4/bert_project/bert_prep_working_dir/" \
-            "hdf5_lower_case_1_seq_len_128_max_pred_20_masked_lm_prob_0.15_random_seed_12345_dupe_factor_5/" \
-            "wikicorpus_en"
-    path = files
-    if not os.path.exists(path):
-        raise FileNotFoundError(
-            "Dataset not found: ({})".format(path)
-        )
-
-    files = [os.path.join(path, f) for f in os.listdir(path)] if os.path.isdir(path) else [path]
-    files = sorted([f for f in files if split in f])
-
-    datasets = []
-    for i, f in enumerate(files):
-        datasets.append(BertH5pyData(f))
-
-    dataset = ConBertH5pyData(datasets)
-    return dataset
-
-
-if __name__ == "__main__":
-    #dataset = test()
-    pass
 
 
