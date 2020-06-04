@@ -41,7 +41,7 @@ $ pip install --editable .
 Set the directory path to $DIST. 
 * For example, if the directory path is under the default path.
 ```
-$ DIST=~/Distributed_BERT/
+$ DIST=~/hetseq/
 ```
 
 ### Single GPU
