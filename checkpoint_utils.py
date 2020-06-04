@@ -15,7 +15,7 @@ from fairseq.models import FairseqEncoder, FairseqDecoder
 '''
 
 
-def save_checkpoint(args, trainer, epoch_itr, val_loss):
+def save_checkpoint(args, controller, epoch_itr, val_loss):
     import distributed_utils, meters
 
     prev_best = getattr(save_checkpoint, 'best', val_loss)
@@ -34,7 +34,7 @@ def save_checkpoint(args, trainer, epoch_itr, val_loss):
 
     epoch = epoch_itr.epoch
     end_of_epoch = epoch_itr.end_of_epoch()
-    updates = trainer.get_num_updates()
+    updates = controller.get_num_updates()
 
     checkpoint_conds = collections.OrderedDict()
     checkpoint_conds['checkpoint{}.pt'.format(epoch)] = (
@@ -60,7 +60,7 @@ def save_checkpoint(args, trainer, epoch_itr, val_loss):
 
     checkpoints = [os.path.join(args.save_dir, fn) for fn, cond in checkpoint_conds.items() if cond]
     if len(checkpoints) > 0:
-        trainer.save_checkpoint(checkpoints[0], extra_state)
+        controller.save_checkpoint(checkpoints[0], extra_state)
         for cp in checkpoints[1:]:
             shutil.copyfile(checkpoints[0], cp)
 
@@ -87,7 +87,7 @@ def save_checkpoint(args, trainer, epoch_itr, val_loss):
                 os.remove(old_chk)
 
 
-def load_checkpoint(args, trainer):
+def load_checkpoint(args, controller):
     """Load a checkpoint and restore the training iterator."""
     # only one worker should attempt to create the required dir
     if args.distributed_rank == 0:
@@ -98,7 +98,7 @@ def load_checkpoint(args, trainer):
     else:
         checkpoint_path = args.restore_file
 
-    extra_state = trainer.load_checkpoint(
+    extra_state = controller.load_checkpoint(
         checkpoint_path,
         args.reset_optimizer,
         args.reset_lr_scheduler,
@@ -119,12 +119,12 @@ def load_checkpoint(args, trainer):
     if extra_state is not None and not args.reset_dataloader:
         # restore iterator from checkpoint
         itr_state = extra_state['train_iterator']
-        epoch_itr = trainer.get_train_iterator(epoch=itr_state['epoch'], load_dataset=True)
+        epoch_itr = controller.get_train_iterator(epoch=itr_state['epoch'], load_dataset=True)
         epoch_itr.load_state_dict(itr_state)
     else:
-        epoch_itr = trainer.get_train_iterator(epoch=0, load_dataset=True)
+        epoch_itr = controller.get_train_iterator(epoch=0, load_dataset=True)
 
-    trainer.lr_step(epoch_itr.epoch)
+    controller.lr_step(epoch_itr.epoch)
 
     return extra_state, epoch_itr
 

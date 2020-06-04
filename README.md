@@ -166,7 +166,7 @@ python3 ${DIST}/train.py  \
 ### Core
 * BERT model: ```bert_modeling.py```
 * main train code: ```train.py```
-* distrbuted training code: ```trainer.py```
+* distrbuted training code: ```controller.py```
 
 ### Supporting
 * utils: ```utils.py```

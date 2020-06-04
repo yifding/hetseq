@@ -19,7 +19,7 @@ from meters import AverageMeter, StopwatchMeter, TimeMeter
 
 
 
-class Trainer(object):
+class Controller(object):
     """Main class for data parallel training.
     This class supports synchronous distributed data parallel training,
     where multiple workers each have a full model replica and gradients

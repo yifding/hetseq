@@ -186,7 +186,7 @@ def add_optimization_args(parser, optimizer='adam', lr_scheduler='PolynomialDeca
                        help='specify global optimizer for syncing models on different GPUs/shards')
 
     if optimizer == 'adam':
-        group.add_argument('--optimizer', default='adam', type=str, help='pass adam to trainer to select optim class')
+        group.add_argument('--optimizer', default='adam', type=str, help='pass adam to controller to select optim class')
         group.add_argument('--adam-betas', default='(0.9, 0.999)', metavar='B',
                             help='betas for Adam optimizer')
         group.add_argument('--adam-eps', type=float, default=1e-8, metavar='D',
@@ -196,7 +196,7 @@ def add_optimization_args(parser, optimizer='adam', lr_scheduler='PolynomialDeca
 
     if lr_scheduler == 'PolynomialDecayScheduler':
         group.add_argument('--lr_scheduler', default='PolynomialDecayScheduler',
-                           type=str, help='pass poly lr_scheduler to trainer to select optim class')
+                           type=str, help='pass poly lr_scheduler to controller to select optim class')
 
         group.add_argument('--force-anneal', '--fa', type=int, metavar='N',
                             help='force annealing at specified epoch')
