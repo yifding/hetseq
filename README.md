@@ -84,7 +84,7 @@ python3 ${DIST}/train.py  \
 --valid-subset test --num-workers 4 \
 --warmup-updates 10000  --total-num-update 1000000 --lr 0.0001  \
 --weight-decay 0.01 --save-dir node4gpu4  \
---distributed-init-method tcp://{AD} \
+--distributed-init-method tcp://${AD} \
 --distributed-world-size 16 \
 --distributed-gpus 4 \
 --distributed-rank 0
@@ -100,7 +100,7 @@ python3 ${DIST}/train.py  \
 --valid-subset test --num-workers 4 \
 --warmup-updates 10000  --total-num-update 1000000 --lr 0.0001  \
 --weight-decay 0.01 --save-dir node4gpu4  \
---distributed-init-method tcp://{AD} \
+--distributed-init-method tcp://${AD} \
 --distributed-world-size 16 \
 --distributed-gpus 4 \
 --distributed-rank 4 
@@ -116,7 +116,7 @@ python3 ${DIST}/train.py  \
 --valid-subset test --num-workers 4 \
 --warmup-updates 10000  --total-num-update 1000000 --lr 0.0001  \
 --weight-decay 0.01 --save-dir node4gpu4  \
---distributed-init-method tcp://{AD} \
+--distributed-init-method tcp://${AD} \
 --distributed-world-size 16 \
 --distributed-gpus 4 \
 --distributed-rank 8
@@ -132,7 +132,7 @@ python3 ${DIST}/train.py  \
 --valid-subset test --num-workers 4 \
 --warmup-updates 10000  --total-num-update 1000000 --lr 0.0001  \
 --weight-decay 0.01 --save-dir node4gpu4  \
---distributed-init-method tcp://{AD} \
+--distributed-init-method tcp://${AD} \
 --distributed-world-size 16 \
 --distributed-gpus 4 \
 --distributed-rank 12
