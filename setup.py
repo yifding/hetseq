@@ -35,74 +35,21 @@ extensions = [
 
 
 setup(
-    name='Distributed_BERT',
+    name='hetseq',
     version='0.0.1',
-    description='simplified ddp based on fairseq',
+    description='cython module for indices building',
     setup_requires=[
         'cython',
         'numpy',
         'setuptools>=18.0',
     ],
     install_requires=[
-        #'cffi',
         'cython',
-        #'fastBPE',
         'numpy',
-        #'regex',
-        #'sacrebleu',
         'torch',
         'tqdm',
     ],
-    #packages=find_packages(exclude=['scripts', 'tests']),
     packages=find_packages(exclude=[]),
     ext_modules=extensions,
-    #test_suite='tests',
     zip_safe=False,
 )
-'''
-setup(
-    name='fairseq',
-    version='0.8.0',
-    description='Facebook AI Research Sequence-to-Sequence Toolkit',
-    url='https://github.com/pytorch/fairseq',
-    classifiers=[
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Topic :: Scientific/Engineering :: Artificial Intelligence',
-    ],
-    long_description=readme,
-    long_description_content_type='text/markdown',
-    setup_requires=[
-        'cython',
-        'numpy',
-        'setuptools>=18.0',
-    ],
-    install_requires=[
-        'cffi',
-        'cython',
-        'fastBPE',
-        'numpy',
-        'regex',
-        'sacrebleu',
-        'torch',
-        'tqdm',
-    ],
-    packages=find_packages(exclude=['scripts', 'tests']),
-    ext_modules=extensions,
-    test_suite='tests',
-    entry_points={
-        'console_scripts': [
-            'fairseq-eval-lm = fairseq_cli.eval_lm:cli_main',
-            'fairseq-generate = fairseq_cli.generate:cli_main',
-            'fairseq-interactive = fairseq_cli.interactive:cli_main',
-            'fairseq-preprocess = fairseq_cli.preprocess:cli_main',
-            'fairseq-score = fairseq_cli.score:main',
-            'fairseq-train = fairseq_cli.train:cli_main',
-            'fairseq-validate = fairseq_cli.validate:cli_main',
-        ],
-    },
-    zip_safe=False,
-)
-'''
