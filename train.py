@@ -66,8 +66,6 @@ def main(args, init_distributed=False):
     # Load the latest checkpoint if one is available and restore the
     # corresponding train iterator
 
-    # #NOT UNDERSTAND MUCH, need to go through base class, like but not limited to
-    # #torch.nn.modules.module, torch.optim.optimizer, read_state_dict, parameter, serialization
     extra_state, epoch_itr = checkpoint_utils.load_checkpoint(args, controller)
 
     # Train until the learning rate gets too small
@@ -77,7 +75,6 @@ def main(args, init_distributed=False):
     lr = controller.get_lr()
     train_meter = StopwatchMeter()
     train_meter.start()
-    # valid_subsets = args.valid_subset.split(',')
 
     while (
             lr > args.min_lr
@@ -129,28 +126,10 @@ def train(args, controller, task, epoch_itr):                  # #revise-task 7
     valid_subsets = args.valid_subset.split(',')
     max_update = args.max_update or math.inf
 
-    # #WORKING
-    '''
-    if distributed_utils.is_master(args):
-        loop = tqdm(enumerate(progress, start=epoch_itr.iterations_in_epoch))
-    else:
-        loop = enumerate(progress, start=epoch_itr.iterations_in_epoch)
-    '''
 
     loop = enumerate(progress, start=epoch_itr.iterations_in_epoch)
-    #loop = enumerate(itr)
 
     for i, samples in loop:
-        '''
-        print(i, "rank", args.distributed_rank, flush=True)
-        print(i, "rank", args.distributed_rank, len(samples), flush=True)
-        if samples[0] is None:
-            print('HHHHO')
-        else:
-            print(i, "rank", args.distributed_rank, len(samples), len(samples[0]), len(samples[0][0]), flush=True)
-        sys.stdout.flush()
-        '''
-
         log_output = controller.train_step(samples)
         if log_output is None:
             continue
@@ -174,16 +153,6 @@ def train(args, controller, task, epoch_itr):                  # #revise-task 7
             controller.get_meter('ups').reset()
 
         num_updates = controller.get_num_updates()
-        '''
-        if (
-                not args.disable_validation
-                and args.save_interval_updates > 0
-                and num_updates % args.save_interval_updates == 0
-                and num_updates > 0
-        ):
-            valid_losses = validate(args, controller, task, epoch_itr, valid_subsets)                  # #revise-task 9
-            checkpoint_utils.save_checkpoint(args, controller, epoch_itr, valid_losses[0])
-        '''
 
         if num_updates >= max_update:
             break
@@ -244,8 +213,6 @@ def cli_main(task):
         port = random.randint(10000, 20000)
         args.distributed_init_method = 'tcp://localhost:{port}'.format(port=port)
         args.distributed_rank = None  # set based on device id
-        if max(args.update_freq) > 1 and args.ddp_backend != 'no_c10d':
-            print('| NOTE: you may get better performance with: --ddp-backend=no_c10d')
         torch.multiprocessing.spawn(
             fn=distributed_main,
             args=(args, ),

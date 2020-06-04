@@ -73,33 +73,9 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
                                help='number of file to run, 0 for all')
 
 
-    '''
-    if gen:
-        group.add_argument('--gen-subset', default='test', metavar='SPLIT',
-                               help='data subset to generate (train, valid, test)')
-        group.add_argument('--num-shards', default=1, type=int, metavar='N',
-                               help='shard generation over N shards')
-        group.add_argument('--shard-id', default=0, type=int, metavar='ID',
-                           help='id of the shard to generate (id < num_shards)')
-
-        return group
-    '''
-
-
 def add_distributed_training_args(parser):
     """
     Core distributed parameters interference parameters
-    """
-
-    """
-    for example, if running TWO nodes, use 2 GPUs on the first node and 3 GPUs on the second node,
-    for both nodes/scripts:
-        set "distributed-world-size" to 5 (2 + 3) for both scripts 
-        set "distributed-init-method" to "tcp://hostname:port" (hostname =  node1's IP, port=2333),
-
-    the first node/script set "distributed-rank" to 0, "distributed-gpus" to 2
-    the second node/script set "distributed-rank" to 2, "distributed-gpus" to 3
-
     """
 
     group = parser.add_argument_group('Distributed training')
@@ -125,11 +101,7 @@ def add_distributed_training_args(parser):
                        help='which GPU to use (usually configured automatically)')
     group.add_argument('--distributed-no-spawn', action='store_true',
                        help='do not spawn multiple processes even if multiple GPUs are visible')
-    ''' #only allow c10d, no_c10d is slower and should be wiped
-    group.add_argument('--ddp-backend', default='c10d', type=str,
-                       choices=['c10d', 'no_c10d'],
-                       help='DistributedDataParallel backend')
-    '''
+
     group.add_argument('--ddp-backend', default='c10d', type=str,
                        choices=['c10d'],
                        help='DistributedDataParallel backend',)
@@ -164,12 +136,6 @@ def add_optimization_args(parser, optimizer='adam', lr_scheduler='PolynomialDeca
                        help='force stop training at specified update')
     group.add_argument('--clip-norm', default=25, type=float, metavar='NORM',
                        help='clip threshold of gradients')
-
-    '''
-    group.add_argument('--sentence-avg', action='store_true',
-                       help='normalize gradients by the number of sentences in a batch'
-                            ' (default is to normalize by number of tokens)')
-    '''
 
     group.add_argument('--update-freq', default='1', metavar='N1,N2,...,N_K',
                        type=lambda uf: eval_str_list(uf, type=int),
