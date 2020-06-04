@@ -1,11 +1,10 @@
-CRC_RUN_FILE
-preprocessing
-Nvidia_BERT
+CRC_RUN_FILE/
+preprocessing/
+Nvidia_BERT/
 hetseq.egg-info
-build
-support
-__pycache__
-
+build/
+support/
+__pycache__/
 *.so
 *.cpp
 BERT_DATA.py
