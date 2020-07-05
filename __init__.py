@@ -1,1 +1,1 @@
-import Distributed_BERT.data
+import hetseq.data
