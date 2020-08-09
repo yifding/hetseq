@@ -28,7 +28,6 @@ class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether suppo
         if i < 0 or i >= self._len:
             raise IndexError('index out of range')
 
-
     @lru_cache(maxsize=8)
     def __getitem__(self, index):
         with h5py.File(self.path, "r", libver='latest', swmr=True) as data_file:
@@ -65,7 +64,7 @@ class BertH5pyData(torch.utils.data.Dataset):       # # don't know whether suppo
         """
         Return an example's size as a float or tuple.
         """
-        return 512  # in our BERT preparation, the length is always 512
+        return self.max_pred_length  # in our BERT preparation, the length is always 512
 
     def set_epoch(self, epoch):
         pass
