@@ -1,10 +1,11 @@
 __AUTHOR__ = "Yifan Ding"
 __E_MAIL__ = "dyf0125@gmail.com"
-__DATE__ = "1/31/2020"
+__DATE__ = "8/9/2020"
 
 import sys
 import math
 import random
+import argparse
 import collections
 
 import torch
@@ -190,9 +191,14 @@ def distributed_main(i, args, start_rank=0):
     main(args, init_distributed=True)
 
 
-def cli_main(task):
-    parser = options.get_training_parser(task)
-    args = options.parse_args_and_arch(parser)
+def cli_main():
+    task_parser = argparse.ArgumentParser()
+    task_parser.add_argument('--task', type=str,
+                        default='bert', choices=['bert'])
+    pre_args, s = task_parser.parse_known_args()
+
+    parser = options.get_training_parser(task=pre_args.task)
+    args = options.parse_args_and_arch(parser, s)
 
     if args.distributed_init_method is not None:
         assert args.distributed_gpus <= torch.cuda.device_count()
@@ -224,5 +230,4 @@ def cli_main(task):
 
 
 if __name__ == "__main__":
-    task = 'bert'
-    cli_main(task)
+    cli_main()

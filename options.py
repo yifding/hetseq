@@ -15,7 +15,7 @@ def get_training_parser(task='bert'):
                         help='log format to use',
                         choices=['none', 'simple'],)
 
-    add_dataset_args(parser, train=True)    # data file, directory and etc.
+    add_dataset_args(parser, train=True, task='bert')    # data file, directory and etc.
     add_distributed_training_args(parser)   # number of nodes, gpus, communication
     add_optimization_args(parser, optimizer='adam')   # initial & stop LR, update frequency, stop epoch, stop updates
     add_checkpoint_args(parser)
@@ -250,9 +250,9 @@ def eval_bool(x, default=False):
         return default
 
 
-def parse_args_and_arch(parser):
+def parse_args_and_arch(parser, s):
     # Post-process args.
-    args = parser.parse_args()
+    args = parser.parse_args(s)
     if hasattr(args, 'max_sentences_valid') and args.max_sentences_valid is None:
         args.max_sentences_valid = args.max_sentences
     if hasattr(args, 'max_tokens_valid') and args.max_tokens_valid is None:
