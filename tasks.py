@@ -3,6 +3,7 @@ import collections
 
 import numpy as np
 import torch
+import torch.nn as nn
 from data import BertH5pyData, ConBertH5pyData, data_utils, iterators
 
 
@@ -15,7 +16,6 @@ class Task(object):
         self.args = args
         self.datasets = {}
         self.dataset_to_epoch_iter = {}
-
 
     def load_dictionary(self, vocab_file):
         """Loads a vocabulary file into a dictionary."""
@@ -270,3 +270,71 @@ class LanguageModelingTask(Task):
 
         self.datasets[split] = dataset
         print('| loading finished')
+
+
+class MNISTTask(Task):
+    def __init__(self, args):
+        super(MNISTTask, self).__init__(args)
+
+    @classmethod
+    def setup_task(cls, args, **kwargs):
+        """Setup the task (e.g., load dictionaries).
+        Args:
+            args (argparse.Namespace): parsed command-line arguments
+        """
+        # return cls(args, dictionary, output_dictionary, targets=targets)
+        return cls(args)
+
+    def build_model(self, args):
+        model = MNISTNet()
+        return model
+
+    def load_dataset(self, split, **kwargs):
+        """Load a given dataset split.
+        Args:
+            split (str): name of the split (e.g., train, valid, test)
+        """
+        path = self.args.data
+        if not os.path.exists(path):
+            raise FileNotFoundError(
+                "Dataset not found: ({})".format(path)
+            )
+
+        files = [os.path.join(path, f) for f in os.listdir(path)] if os.path.isdir(path) else [path]
+        files = sorted([f for f in files if split in f])
+
+        assert len(files) == 1, "no suitable file in split ***{}***".format(split)
+
+        dataset = MNISTDataset(files[0])
+
+        print('| loaded {} sentences from: {}'.format(len(dataset), path), flush=True)
+
+        self.datasets[split] = dataset
+        print('| loading finished')
+
+
+class MNISTNet(nn.Module):
+    def __init__(self):
+        super(MNISTNet, self).__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, 1)
+        self.conv2 = nn.Conv2d(32, 64, 3, 1)
+        self.dropout1 = nn.Dropout2d(0.25)
+        self.dropout2 = nn.Dropout2d(0.5)
+        self.fc1 = nn.Linear(9216, 128)
+        self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x, target):
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, 2)
+        x = self.dropout1(x)
+        x = torch.flatten(x, 1)
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.dropout2(x)
+        x = self.fc2(x)
+        output = F.log_softmax(x, dim=1)
+        loss = F.nll_loss(output, target)
+        return loss
