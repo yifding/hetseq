@@ -2,7 +2,7 @@ import torch
 import argparse
 
 
-def get_training_parser(task='bert'):
+def get_training_parser(task='bert', optimizer='adam', lr_scheduler='PolynomialDecayScheduler'):
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--no-progress-bar', action='store_true', help='disable progress bar')
     parser.add_argument('--seed', default=19940802, type=int, metavar='N',
@@ -15,9 +15,11 @@ def get_training_parser(task='bert'):
                         help='log format to use',
                         choices=['none', 'simple'],)
 
-    add_dataset_args(parser, train=True, task='bert')    # data file, directory and etc.
+    add_dataset_args(parser, train=True, task=task)    # data file, directory and etc.
     add_distributed_training_args(parser)   # number of nodes, gpus, communication
-    add_optimization_args(parser, optimizer='adam')   # initial & stop LR, update frequency, stop epoch, stop updates
+
+    # initial & stop LR, update frequency, stop epoch, stop updates
+    add_optimization_args(parser, optimizer=optimizer, lr_scheduler=lr_scheduler)
     add_checkpoint_args(parser)
 
     return parser
@@ -71,6 +73,8 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
 
             group.add_argument('--num_file', type=int, default=0,
                                help='number of file to run, 0 for all')
+        else:
+            raise ValueError('unsupported task: {}'.format(task))
 
 
 def add_distributed_training_args(parser):
@@ -152,13 +156,26 @@ def add_optimization_args(parser, optimizer='adam', lr_scheduler='PolynomialDeca
                        help='specify global optimizer for syncing models on different GPUs/shards')
 
     if optimizer == 'adam':
-        group.add_argument('--optimizer', default='adam', type=str, help='pass adam to controller to select optim class')
+        group.add_argument('--optimizer', default='adam', type=str,
+                           help='pass adam to controller to select optim class')
         group.add_argument('--adam-betas', default='(0.9, 0.999)', metavar='B',
                             help='betas for Adam optimizer')
         group.add_argument('--adam-eps', type=float, default=1e-8, metavar='D',
                             help='epsilon for Adam optimizer')
         group.add_argument('--weight-decay', '--wd', default=0.0, type=float, metavar='WD',
                             help='weight decay')
+
+    elif optimizer == 'adadelt':
+        group.add_argument('--optimizer', default='adadelt', type=str,
+                           help='pass adam to controller to select optim class')
+
+        group.add_argument('--adadelta_rho', default='0.9', type=float,)
+        group.add_argument('--adadelta_eps', default='1e-6', type=float,)
+        group.add_argument('--dadelta_weight_decay', default='0', type=float,)
+
+
+    else:
+        raise ValueError('unsupported optimizer: {}'.format(optimizer))
 
     if lr_scheduler == 'PolynomialDecayScheduler':
         group.add_argument('--lr_scheduler', default='PolynomialDecayScheduler',
@@ -171,6 +188,10 @@ def add_optimization_args(parser, optimizer='adam', lr_scheduler='PolynomialDeca
         group.add_argument('--end-learning-rate', default=0.0, type=float)
         group.add_argument('--power', default=1.0, type=float)
         group.add_argument('--total-num-update', default=1000000, type=int)
+
+    else:
+        raise ValueError('unsupported lr_scheduler: {}'.format(lr_scheduler))
+
 
     return group
 

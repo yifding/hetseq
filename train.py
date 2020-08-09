@@ -192,12 +192,20 @@ def distributed_main(i, args, start_rank=0):
 
 
 def cli_main():
-    task_parser = argparse.ArgumentParser()
+    task_parser = argparse.ArgumentParser(allow_abbrev=False)
     task_parser.add_argument('--task', type=str,
-                        default='bert', choices=['bert'])
+                        default='bert', choices=['bert', 'mnist'])
+    task_parser.add_argument('--optimizer', type=str,
+                             default='adam', choices=['adam', 'adadelta'])
+    task_parser.add_argument('--lr-scheduler', type=str,
+                             default='PolynomialDecayScheduler', choices=['PolynomialDecayScheduler'])
+
     pre_args, s = task_parser.parse_known_args()
 
-    parser = options.get_training_parser(task=pre_args.task)
+    parser = options.get_training_parser(task=pre_args.task,
+                                         optimizer=pre_args.optimizer,
+                                         lr_scheduler=pre_args.lr_scheduler,
+                                         )
     args = options.parse_args_and_arch(parser, s)
 
     if args.distributed_init_method is not None:
