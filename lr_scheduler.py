@@ -102,3 +102,4 @@ class PolynomialDecayScheduler(_LRScheduler):
             lr = lr_range * pct_remaining ** (self.power) + self.end_learning_rate
         self.optimizer.set_lr(lr)
         return self.optimizer.get_lr()
+

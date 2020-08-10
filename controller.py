@@ -111,6 +111,8 @@ class Controller(object):
 
         if self.args.optimizer == 'adam':
             self._optimizer = optim._Adam(self.args, params)
+        elif self.args.optimizer == 'adadelta':
+            self._optimizer = optim._Adadelta(self.args, params)
         else:
             raise ValueError("unsupported optimizer - {}".format(self.args.optimizer))
 

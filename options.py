@@ -73,6 +73,14 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
 
             group.add_argument('--num_file', type=int, default=0,
                                help='number of file to run, 0 for all')
+
+        elif task == 'mnist':
+            parser.add_argument('--task', type=str, default='mnist')
+            parser.add_argument('--data', type=str,
+                                help='path including data')
+
+
+
         else:
             raise ValueError('unsupported task: {}'.format(task))
 
@@ -165,8 +173,8 @@ def add_optimization_args(parser, optimizer='adam', lr_scheduler='PolynomialDeca
         group.add_argument('--weight-decay', '--wd', default=0.0, type=float, metavar='WD',
                             help='weight decay')
 
-    elif optimizer == 'adadelt':
-        group.add_argument('--optimizer', default='adadelt', type=str,
+    elif optimizer == 'adadelta':
+        group.add_argument('--optimizer', default='adadelta', type=str,
                            help='pass adam to controller to select optim class')
 
         group.add_argument('--adadelta_rho', default='0.9', type=float,)
@@ -175,6 +183,7 @@ def add_optimization_args(parser, optimizer='adam', lr_scheduler='PolynomialDeca
 
 
     else:
+        print(optimizer, 'adadelta')
         raise ValueError('unsupported optimizer: {}'.format(optimizer))
 
     if lr_scheduler == 'PolynomialDecayScheduler':

@@ -4,7 +4,8 @@ import collections
 import numpy as np
 import torch
 import torch.nn as nn
-from data import BertH5pyData, ConBertH5pyData, data_utils, iterators
+import torch.nn.functional as F
+from data import MNISTDataset, BertH5pyData, ConBertH5pyData, data_utils, iterators
 
 
 class Task(object):
@@ -233,6 +234,7 @@ class LanguageModelingTask(Task):
             from bert_modeling import BertForPreTraining, BertConfig
             config = BertConfig.from_json_file(args.config_file)
             model = BertForPreTraining(config)
+
         else:
             raise ValueError(
                     "Unsupported language modeling task: {}".format(args.task)
@@ -324,6 +326,7 @@ class MNISTNet(nn.Module):
         self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x, target):
+        # print('shape', x.shape, target.shape)
         x = self.conv1(x)
         x = F.relu(x)
         x = self.conv2(x)
