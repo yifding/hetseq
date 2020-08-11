@@ -201,7 +201,7 @@ def save_state(
                 'num_updates': num_updates,
             }
         ],
-        'extra_state': extra_state,
+        'extra_state': {},
     }
     if not args.no_save_optimizer_state:
         state_dict['last_optimizer_state'] = convert_state_dict_type(optimizer.state_dict())
