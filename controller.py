@@ -18,7 +18,6 @@ import distributed_utils
 from meters import AverageMeter, StopwatchMeter, TimeMeter
 
 
-
 class Controller(object):
     """Main class for data parallel training.
     This class supports synchronous distributed data parallel training,
