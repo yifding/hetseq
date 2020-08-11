@@ -1,4 +1,6 @@
 from functools import lru_cache
+from torchvision import transforms
+from PIL import Image
 
 import numpy as np
 import torch
@@ -11,22 +13,44 @@ class MNISTDataset(torch.utils.data.Dataset):
         self.data = None
         self.path = path
         self.read_data(self.path)
+        self.transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,))
+        ])
 
+    """
+    **YD** original read_data
     def read_data(self, path):
         self.data = torch.load(path)
         self._len = len(self.data[0])
         self.image = self.data[0].unsqueeze(1).float()
         self.label = self.data[1].long()
+    """
 
+    def read_data(self, path):
+        self.data = torch.load(path)
+        self._len = len(self.data[0])
+        self.image = self.data[0]
+        self.label = self.data[1]
 
         # **YD**
         # print(self.data[0].shape, self.data[1].shape)
         # raise ValueError('debugging for data shape')
 
+    """
+    **YD** original __getitem__
     @lru_cache(maxsize=8)
     def __getitem__(self, index):
         # print(self.image.shape, self.data[1].shape)
         return [self.image[index, :, :, :], self.label[index]]
+    """
+    @lru_cache(maxsize=8)
+    def __getitem__(self, index):
+        img, target = self.image[index], int(self.label[index])
+        img = Image.fromarray(img.numpy(), mode='L')
+        img = self.transform(img)
+        return img, target
+        # return [self.image[index, :, :, :], self.label[index]]
 
     def __len__(self):
         return self._len
