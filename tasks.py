@@ -325,8 +325,10 @@ class MNISTNet(nn.Module):
         self.fc1 = nn.Linear(9216, 128)
         self.fc2 = nn.Linear(128, 10)
 
-    def forward(self, x, target):
+    def forward(self, x, target, eval=False):
         # print('shape', x.shape, target.shape)
+        # print(target)
+
         x = self.conv1(x)
         x = F.relu(x)
         x = self.conv2(x)
@@ -340,4 +342,5 @@ class MNISTNet(nn.Module):
         x = self.fc2(x)
         output = F.log_softmax(x, dim=1)
         loss = F.nll_loss(output, target)
-        return loss
+        return loss if not eval else output, loss
+        # return loss
