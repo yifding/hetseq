@@ -342,5 +342,5 @@ class MNISTNet(nn.Module):
         x = self.fc2(x)
         output = F.log_softmax(x, dim=1)
         loss = F.nll_loss(output, target)
-        return loss if not eval else output, loss
-        # return loss
+        # return loss if not eval else output, loss
+        return loss
