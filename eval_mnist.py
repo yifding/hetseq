@@ -42,7 +42,7 @@ dataset2 = datasets.MNIST('/scratch365/yding4/mnist/MNIST/processed', train=Fals
                        transform=transform)
 
 device = torch.device("cuda")
-checkpoint = torch.load('/scratch365/yding4/hetseq/CRC_RUN_FILE/new_test/sing_gpu/checkpoint_last.pt')
+checkpoint = torch.load('/scratch365/yding4/hetseq/CRC_RUN_FILE/new_test/node1gpu4/checkpoint_last.pt')
 
 model = MNISTNet()
 model.load_state_dict(checkpoint['model'])
