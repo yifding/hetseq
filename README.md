@@ -6,18 +6,6 @@ HetSeq: Distributed GPU Training on Heterogeneous Infrastructure, to appear.
 
 Author: Yifan Ding (yding4@nd.edu)
 
-## Environment Requirement
-The code has been tested running under Python 3.7.4. The required packages are as follows (same as requirement.txt):
-* cython == 0.29.13
-* numpy == 1.17.0
-* h5py == 2.10.0
-* torch == 1.2.0
-* tqdm == 4.36.1
-* boto3 == 1.9.244
-* chardet == 3.0.4
-* idna == 2.8
-* python-dateutil == 2.8.0
-
 ## Preparation for the reporsitory
 1) create and activate conda virtual environment wity Python 3.7.4 (recommended)
 ```
@@ -35,7 +23,8 @@ $ pip install -r requirement.txt
 $ pip install --editable . 
 ```
 
-3) Download data files including training corpus, model configuration, and BPE dictionary. Test corpus from [here](https://drive.google.com/file/d/1ZPJVAiV7PsewChi7xKACrjuniJ2N9Sry/view?usp=sharing), full data from [this link](https://drive.google.com/file/d/1Vq_UO-T9345uYs8a7zloukGfhDXSDd2A/view?usp=sharing). Download test_DATA.zip for test or DATA.zip for full run, unzip it and place the ```preprocessing/``` directory inside the package directory
+3) **To Run BERT:** Download data files including training corpus, model configuration, and BPE dictionary. Test corpus from [here](https://drive.google.com/file/d/1ZPJVAiV7PsewChi7xKACrjuniJ2N9Sry/view?usp=sharing), full data from [this link](https://drive.google.com/file/d/1Vq_UO-T9345uYs8a7zloukGfhDXSDd2A/view?usp=sharing). Download test_DATA.zip for test or DATA.zip for full run, unzip it and place the ```preprocessing/``` directory inside the package directory
+
 
 
 ## Example to Run the Codes
@@ -138,6 +127,7 @@ python3 ${DIST}/train.py  \
 --distributed-gpus 4 \
 --distributed-rank 12
 ```
+
 
 ## Available corpus under ```preprocessing/```, 
 * phase one of BERT training corpus : ```preprocessing/hdf5_lower_case_1_seq_len_128.../wikicorpus_en/```
