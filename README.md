@@ -28,8 +28,9 @@ $ conda install python=3.7.4
 
 2) Git clone directory and install nessasory package
 ```
-$ git clone url (TODO)
-$ cd url_directory (TODO)
+$ cd ~
+$ git clone https://github.com/yifding/hetseq.git
+$ cd ~/hetseq
 $ pip install -r requirement.txt 
 $ pip install --editable . 
 ```
