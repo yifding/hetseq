@@ -21,8 +21,8 @@ The code has been tested running under Python 3.7.4. The required packages are a
 ## Preparation for the reporsitory
 1) create and activate conda virtual environment wity Python 3.7.4 (recommended)
 ```
-$ conda create --name distribute_bert
-$ conda activate distribute_bert
+$ conda create --name hetseq
+$ conda activate hetseq
 $ conda install python=3.7.4
 ```
 
