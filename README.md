@@ -25,7 +25,46 @@ $ pip install --editable .
 
 3) **To Run BERT:** Download data files including training corpus, model configuration, and BPE dictionary. Test corpus from [here](https://drive.google.com/file/d/1ZPJVAiV7PsewChi7xKACrjuniJ2N9Sry/view?usp=sharing), full data from [this link](https://drive.google.com/file/d/1Vq_UO-T9345uYs8a7zloukGfhDXSDd2A/view?usp=sharing). Download test_DATA.zip for test or DATA.zip for full run, unzip it and place the ```preprocessing/``` directory inside the package directory
 
+## Distributed Configuration
+HetSeq can be executed on single GPU on a single node, multiple GPUs on a single node, or multiple GPUs across multiple nodes. Main logic is defined at [train.py](https://github.com/yifding/hetseq/blob/master/train.py#L213)
 
+* **--distributed-init-method**: defines an initialization. e.g.: "tcp://10.32.82.207:11111" (tcp for multiple nodes) or "file:///hetseq/communicate.txt" (shared file  for multiple nodes) or "tcp://localhost:11111" (tcp for single node with multiple GPUs).
+* **--distributed-world-size**: total number of GPUs used in the training.
+* **--distributed-gpus**: the number of GPUs on the current node.
+* **--distributed-rank**: represents the rank/index of the first GPU used on current node. 
+
+### Set up different distributed settings:
+#### 1. single GPU:
+```
+--distributed-world-size 1 --device-id 1
+```
+#### 2. 4 GPUs on a single node:
+```
+--distributed-world-size 4
+```
+#### 3. 4 nodes with 4 GPU each(16 GPUs in total, "tcp://10.00.123.456" is the IP address and "11111" is the port number.):
+
+##### 1st node:
+```
+--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 0
+```
+
+##### 2nd node:
+```
+--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 4
+```
+
+##### 3rd node:
+```
+--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 8
+```
+
+##### 4th node:
+```
+--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 12
+```
+
+Example to run distributed training on 4 nodes with 4 GPU each. (16 GPUs in total)
 
 ## Example to Run the Codes
 Set the directory path to $DIST. 
