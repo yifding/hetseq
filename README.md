@@ -142,6 +142,9 @@ python3 ${DIST}/train.py  \
 --distributed-rank 12
 ```
 
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=7XlqcS6B7WA
+" target="_blank"><img src="http://img.youtube.com/vi/7XlqcS6B7WA/0.jpg" 
+alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
 
 ## Available corpus under ```preprocessing/```, 
 * phase one of BERT training corpus : ```preprocessing/hdf5_lower_case_1_seq_len_128.../wikicorpus_en/```
