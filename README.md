@@ -7,7 +7,7 @@ HetSeq: Distributed GPU Training on Heterogeneous Infrastructure, to appear.
 Author: Yifan Ding (yding4@nd.edu)
 
 ## Preparation for the reporsitory
-1) create and activate conda virtual environment wity Python 3.7.4 (recommended)
+1) create and activate conda virtual environment with Python 3.7.4 (recommended)
 ```
 $ conda create --name hetseq
 $ conda activate hetseq
@@ -33,37 +33,13 @@ HetSeq can be executed on single GPU on a single node, multiple GPUs on a single
 * **--distributed-rank**: represents the rank/index of the first GPU used on current node. 
 
 ### Set up different distributed settings:
-#### 1. single GPU:
-```
---distributed-world-size 1 --device-id 1
-```
-#### 2. 4 GPUs on a single node:
-```
---distributed-world-size 4
-```
-#### 3. 4 nodes with 4 GPU each(16 GPUs in total, "tcp://10.00.123.456" is the IP address and "11111" is the port number.):
-
-##### 1st node:
-```
---distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 0
-```
-
-##### 2nd node:
-```
---distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 4
-```
-
-##### 3rd node:
-```
---distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 8
-```
-
-##### 4th node:
-```
---distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 12
-```
-
-Example to run distributed training on 4 nodes with 4 GPU each. (16 GPUs in total)
+#### 1. single GPU: ```--distributed-world-size 1 --device-id 1```
+#### 2. Four GPUs on a single node: ```--distributed-world-size 4```
+#### 3. Four nodes with four GPUs each (16 GPUs in total)  "10.00.123.456" is the IP address of first node and "11111" is the port number:
+##### 1st node: ```--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 0```
+##### 2nd node: ```--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 4```
+##### 3rd node: ```--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 8```
+##### 4th node: ```--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 12```
 
 ## Example to Run the Codes
 Set the directory path to $DIST. 
