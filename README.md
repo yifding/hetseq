@@ -6,7 +6,13 @@ HetSeq: Distributed GPU Training on Heterogeneous Infrastructure, to appear.
 
 Author: Yifan Ding (yding4@nd.edu)
 
-## Preparation for the reporsitory
+## Overview
+HetSeq is a distributed neural network platiform designed to run on Heterogeneous Infrastructure with common scientific shared file system. 
+It can be run directly on command line with SSH or task queen submission system without privilege or any extra packages. It takes care of the data index randomization and assignment to different GPUs in the multi-node and multi-GPU setting. Users can easily extend HetSeq to many other models with minimum effort.
+
+HetSeq requires installation of [PyTorch](https://github.com/pytorch/pytorch) with GPU support and [NCCL](https://developer.nvidia.com/nccl).
+
+## Installation
 1) create and activate conda virtual environment with Python 3.7.4 (recommended)
 ```
 $ conda create --name hetseq
@@ -24,7 +30,9 @@ $ pip install --editable .
 
 3) **To Run BERT:** Download data files including training corpus, model configuration, and BPE dictionary. Test corpus from [here](https://drive.google.com/file/d/1ZPJVAiV7PsewChi7xKACrjuniJ2N9Sry/view?usp=sharing), full data from [this link](https://drive.google.com/file/d/1Vq_UO-T9345uYs8a7zloukGfhDXSDd2A/view?usp=sharing). Download test_DATA.zip for test or DATA.zip for full run, unzip it and place the ```preprocessing/``` directory inside the package directory
 
-## Distributed Configuration
+4) **To Run MNIST:** Download MNIST dataset from torchvision, see example at [HERE](https://github.com/pytorch/examples/blob/master/mnist/main.py#L114)
+
+### Distributed Configuration
 HetSeq can be executed on single GPU on a single node, multiple GPUs on a single node, or multiple GPUs across multiple nodes. Main logic is defined at [train.py](https://github.com/yifding/hetseq/blob/master/train.py#L213)
 
 * **--distributed-init-method**: defines an initialization. e.g.: "tcp://10.32.82.207:11111" (tcp for multiple nodes) or "file:///hetseq/communicate.txt" (shared file for multiple nodes).
@@ -32,17 +40,17 @@ HetSeq can be executed on single GPU on a single node, multiple GPUs on a single
 * **--distributed-gpus**: the number of GPUs on the current node.
 * **--distributed-rank**: represents the rank/index of the first GPU used on current node. 
 
-### Set up different distributed settings:
-#### 1. single GPU: 
+#### Different distributed settings:
+##### 1. single GPU: 
 ```
 --distributed-world-size 1 --device-id 1
 ```
-#### 2. Four GPUs on a single node: 
+##### 2. Four GPUs on a single node: 
 ```
 --distributed-world-size 4
 ```
-#### 3. Four nodes with four GPUs each (16 GPUs in total)  "10.00.123.456" is the IP address of first node and "11111" is the port number:
-##### 1st node & 2nd node & 3rd node & 4th node: 
+##### 3. Four nodes with four GPUs each (16 GPUs in total)  "10.00.123.456" is the IP address of first node and "11111" is the port number:
+1st node & 2nd node & 3rd node & 4th node: 
 ```
 --distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 0
 --distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 4
