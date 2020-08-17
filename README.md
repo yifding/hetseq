@@ -33,13 +33,22 @@ HetSeq can be executed on single GPU on a single node, multiple GPUs on a single
 * **--distributed-rank**: represents the rank/index of the first GPU used on current node. 
 
 ### Set up different distributed settings:
-#### 1. single GPU: ```--distributed-world-size 1 --device-id 1```
-#### 2. Four GPUs on a single node: ```--distributed-world-size 4```
+#### 1. single GPU: 
+```
+--distributed-world-size 1 --device-id 1
+```
+#### 2. Four GPUs on a single node: 
+```
+--distributed-world-size 4
+```
 #### 3. Four nodes with four GPUs each (16 GPUs in total)  "10.00.123.456" is the IP address of first node and "11111" is the port number:
-##### 1st node: ```--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 0```
-##### 2nd node: ```--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 4```
-##### 3rd node: ```--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 8```
-##### 4th node: ```--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 12```
+##### 1st node & 2nd node & 3rd node & 4th node: 
+```
+--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 0
+--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 4
+--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 8
+--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 12
+```
 
 ## Example to Run the Codes
 Set the directory path to $DIST. 
@@ -142,9 +151,6 @@ python3 ${DIST}/train.py  \
 --distributed-rank 12
 ```
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=7XlqcS6B7WA
-" target="_blank"><img src="http://img.youtube.com/vi/7XlqcS6B7WA/0.jpg" 
-alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
 
 ## Available corpus under ```preprocessing/```, 
 * phase one of BERT training corpus : ```preprocessing/hdf5_lower_case_1_seq_len_128.../wikicorpus_en/```
