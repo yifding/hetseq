@@ -28,7 +28,7 @@ $ pip install --editable .
 ## Distributed Configuration
 HetSeq can be executed on single GPU on a single node, multiple GPUs on a single node, or multiple GPUs across multiple nodes. Main logic is defined at [train.py](https://github.com/yifding/hetseq/blob/master/train.py#L213)
 
-* **--distributed-init-method**: defines an initialization. e.g.: "tcp://10.32.82.207:11111" (tcp for multiple nodes) or "file:///hetseq/communicate.txt" (shared file  for multiple nodes) or "tcp://localhost:11111" (tcp for single node with multiple GPUs).
+* **--distributed-init-method**: defines an initialization. e.g.: "tcp://10.32.82.207:11111" (tcp for multiple nodes) or "file:///hetseq/communicate.txt" (shared file for multiple nodes).
 * **--distributed-world-size**: total number of GPUs used in the training.
 * **--distributed-gpus**: the number of GPUs on the current node.
 * **--distributed-rank**: represents the rank/index of the first GPU used on current node. 
