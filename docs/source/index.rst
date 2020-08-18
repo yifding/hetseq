@@ -29,11 +29,18 @@ HetSeq is a distributed neural network platiform designed to run on Heterogeneou
 .. toctree::
    :maxdepth: 3
    :caption: Modules:
-
+    
+   parameter
    task
    model
    optimizer
    lr_scheduler
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Support:
+
+   support
 
 
 
