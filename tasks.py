@@ -184,26 +184,13 @@ class Task(object):
 
 class LanguageModelingTask(Task):
     """
-    Train a language model.
-    Args:
-        dictionary (~fairseq.data.Dictionary): the dictionary for the input of
-            the language model
-        output_dictionary (~fairseq.data.Dictionary): the dictionary for the
-            output of the language model. In most cases it will be the same as
-            *dictionary*, but could possibly be a more limited version of the
-            dictionary (if ``--output-dictionary-size`` is used).
-        targets (List[str]): list of the target types that the language model
-            should predict.  Can be one of "self", "future", and "past".
-            Defaults to "future".
-    .. note::
-        The language modeling task is compatible with :mod:`fairseq-train`,
-        :mod:`fairseq-generate`, :mod:`fairseq-interactive` and
-        :mod:`fairseq-eval-lm`.
-    The language modeling task provides the following additional command-line
-    arguments:
-    .. argparse::
-        :ref: fairseq.tasks.language_modeling_parser
-        :prog:
+    Train a language model, currently support BERT.
+
+
+    Args: 
+	args: parsed from command line
+
+    	dictionary: the BPE dictionary for the input of the language model
     """
 
     def __init__(self, args, dictionary):
