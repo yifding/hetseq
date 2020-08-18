@@ -6,6 +6,8 @@ HetSeq: Distributed GPU Training on Heterogeneous Infrastructure, to appear.
 
 Author: Yifan Ding (yding4@nd.edu)
 
+Package webpage: https://hetseq.readthedocs.io/en/master/
+
 ## Overview
 HetSeq is a distributed neural network platiform designed to run on Heterogeneous Infrastructure with common scientific shared file system. 
 It can be run directly on command line with SSH or task queen submission system without privilege or any extra packages. It takes care of the data index randomization and assignment to different GPUs in the multi-node and multi-GPU setting. Users can easily extend HetSeq to many other models with minimum effort.
