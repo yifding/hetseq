@@ -2,10 +2,71 @@
 Distributed Setting
 *******************
 
-Overview
---------
 
 HetSeq can be executed on single GPU on a single node, multiple GPUs on a single node, or multiple GPUs across multiple nodes. Main logic is defined at `train.py <https://github.com/yifding/hetseq/blob/master/train.py#L213>`__.
+
+Control Parameters
+------------------
+``--distributed-init-method``: defines an initialization. 
+
+	e.g\: ``tcp://10.32.82.207:11111`` (IP address:port. TCP for multiple nodes) or 
+	     ``file:///hetseq/communicate.txt`` (shared file for multiple nodes).
+
+``--distributed-world-size``: total number of GPUs used in the training.
+
+``--distributed-gpus``: the number of GPUs on the current node.
+
+``--distributed-rank``: represents the rank/index of the first GPU used on current node.
+
+
+Different Distributed Settings
+------------------------------
+
+1.Single GPU:
+
+.. code:: console
+
+	--distributed-world-size 1 --device-id 1
+
+2. Four GPUs on a single node:
+
+.. code:: console
+	
+	--distributed-world-size 4
+
+3. Four nodes with four GPUs each (16 GPUs in total) ``10.00.123.456`` is the IP address of first node and ``11111`` is the port number:
+
+* 1st node 
+
+.. code:: console
+
+	--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 0
+
+* 2nd node 
+
+.. code:: console
+
+	--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 4
+
+* 3rd node 
+
+.. code:: console
+
+	--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 8
+
+* 4th node 
+
+.. code:: console
+
+	--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 12
+
+
+
+
+
+
+Main Logic
+----------
 
 .. code:: python
 
@@ -37,10 +98,6 @@ HetSeq can be executed on single GPU on a single node, multiple GPUs on a single
         	main(args)
 
 
-Configuration
--------------
-
-.. autoclass:: tasks.LanguageModelingTask
 
 
 
