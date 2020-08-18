@@ -36,8 +36,8 @@ Download MNIST dataset from ``torchvision``, see example `here <https://github.c
 
 .. code:: python
 
-	> from torchvision import datasets
-	> dataset1 = datasets.MNIST('../data', train=True, download=True)
+	from torchvision import datasets
+	dataset1 = datasets.MNIST('../data', train=True, download=True)
 
 
 
