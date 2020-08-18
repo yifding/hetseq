@@ -8,7 +8,9 @@ Welcome to HetSeq's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Getting Started With Hetseq:
+
+   installing
 
 
 
