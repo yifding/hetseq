@@ -60,4 +60,4 @@ master_doc = 'index'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-autodoc_mock_imports = ["numpy", "torch", "h5py", "torchvision", "PIL"]
+autodoc_mock_imports = ["numpy", "torch", "h5py", "torchvision", "PIL", "boto3", "botocore", "tqdm"]
