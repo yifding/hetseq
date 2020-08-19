@@ -291,7 +291,7 @@ class MNISTTask(Task):
             raise FileNotFoundError(
                 "Dataset not found: ({})".format(path)
             )
-        
+
         if os.path.isdir(path):
             if os.path.exists(os.path.join(path, 'MNIST/processed/')):
                 path = os.path.join(path, 'MNIST/processed/')
