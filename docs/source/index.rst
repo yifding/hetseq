@@ -3,8 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to HetSeq's documentation!
+:github_url: https://github.com/yifding/hetseq
+
+HetSeq's documentation!
 ==================================
+
 HetSeq is a distributed neural network platiform designed to run on Heterogeneous Infrastructure with common scientific shared file system. It can be run directly on command line with SSH or task queen submission system without privilege or any extra packages. It takes care of the data index randomization and assignment to different GPUs in the multi-node and multi-GPU setting. Users can easily extend HetSeq to many other models with minimum effort.
 
 .. note::
@@ -18,23 +21,31 @@ HetSeq is a distributed neural network platiform designed to run on Heterogeneou
 
    installing
    distribute
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Running HetSeq:
+
+   parameter
    examples
 
 .. toctree::
    :maxdepth: 3
-   :caption: Extensions:
+   :caption: Extending HetSeq:
 
-   extension
+   extending
 
 .. toctree::
    :maxdepth: 3
-   :caption: Modules:
+   :caption: Reference:
     
-   parameter
    task
+   dataset
    model
    optimizer
    lr_scheduler
+   meters
+   progress_bar	
 
 .. toctree::
    :maxdepth: 3
@@ -50,5 +61,4 @@ Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
