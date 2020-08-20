@@ -5,6 +5,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchvision import datasets
+
 from data import MNISTDataset, BertH5pyData, ConBertH5pyData, data_utils, iterators
 
 
@@ -284,10 +286,18 @@ class MNISTTask(Task):
             split (str): name of the split (e.g., train, valid, test)
         """
         path = self.args.data
+
         if not os.path.exists(path):
             raise FileNotFoundError(
                 "Dataset not found: ({})".format(path)
             )
+
+        if os.path.isdir(path):
+            if os.path.exists(os.path.join(path, 'MNIST/processed/')):
+                path = os.path.join(path, 'MNIST/processed/')
+            elif os.path.basename(os.path.normpath(path)) != 'processed':
+                datasets.MNIST(path, train=True, download=True)
+                path = os.path.join(path, 'MNIST/processed/')
 
         files = [os.path.join(path, f) for f in os.listdir(path)] if os.path.isdir(path) else [path]
         files = sorted([f for f in files if split in f])
