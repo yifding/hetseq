@@ -26,13 +26,13 @@ Different Distributed Settings
 
 .. code:: console
 
-	--distributed-world-size 1 --device-id 1
+	$ --distributed-world-size 1 --device-id 1
 
 2. Four GPUs on a single node:
 
 .. code:: console
 	
-	--distributed-world-size 4
+	$ --distributed-world-size 4
 
 3. Four nodes with four GPUs each (16 GPUs in total) ``10.00.123.456`` is the IP address of first node and ``11111`` is the port number:
 
@@ -40,25 +40,25 @@ Different Distributed Settings
 
 .. code:: console
 
-	--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 0
+	$ --distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 0
 
 * 2nd node 
 
 .. code:: console
 
-	--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 4
+	$ --distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 4
 
 * 3rd node 
 
 .. code:: console
 
-	--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 8
+	$ --distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 8
 
 * 4th node 
 
 .. code:: console
 
-	--distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 12
+	$ --distributed-init-method tcp://10.00.123.456:11111 --distributed-world-size 16 --distributed-gpus 4 --distributed-rank 12
 
 
 
