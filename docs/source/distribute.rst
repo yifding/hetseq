@@ -1,3 +1,5 @@
+.. _distribute:
+
 *******************
 Distributed Setting
 *******************
@@ -5,12 +7,13 @@ Distributed Setting
 
 HetSeq can be executed on single GPU on a single node, multiple GPUs on a single node, or multiple GPUs across multiple nodes. Main logic is defined at `train.py <https://github.com/yifding/hetseq/blob/master/train.py#L213>`__.
 
+
 Control Parameters
 ------------------
 ``--distributed-init-method``: defines an initialization. 
 
-	e.g\: ``tcp://10.32.82.207:11111`` (IP address:port. TCP for multiple nodes) or 
-	     ``file:///hetseq/communicate.txt`` (shared file for multiple nodes).
+	* ``tcp://10.32.82.207:11111`` (IP address:port. TCP example for multiple nodes) or 
+	* ``file:///hetseq/communicate.txt`` (shared file example for multiple nodes).
 
 ``--distributed-world-size``: total number of GPUs used in the training.
 
