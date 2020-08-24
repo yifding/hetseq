@@ -91,7 +91,7 @@ Training Parameters
 
 * ``--update-freq``: update parameters every ``N_i`` batches, when in epoch i. ``1`` by default. 
 
-* ``--max-tokens``:  maximum number of tokens of a batch ``0``, not assigned.
+* ``--max-tokens``:  maximum number of tokens of a batch, not assigned.
   
 * ``--max-sentences``:  maximum number of sentences/images/instances of a batch (batch size), not assigned.
 
