@@ -79,7 +79,7 @@ Distrbuted parameters play a key role in HetSeq to set up the distrbuted trainin
         * ``--distributed-rank``:  rank of the current GPU, ``0`` by default. 
 
 
-`
+
 Training Parameters
 -------------------
 
