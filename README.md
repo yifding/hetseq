@@ -64,7 +64,7 @@ Running BERT on nodes with 4 GPUs each.
 |   8   |  32  |    5   |     1024   |  33,393 |        3.126       |     1.21d     |     0.055     |    0.74   |   5.94  |
 
 ## Notice and tips
-> loading BERT data takes a while. 
+> loading BERT data takes a while. Please send us e-mail or leave comments on github if have any questions.
 
 ## License
 this repository is MIT-licensed. It is created based on [fairseq](https://github.com/pytorch/fairseq), 
