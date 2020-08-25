@@ -64,12 +64,15 @@ Running BERT on nodes with 4 GPUs each.
 |   8   |  32  |    5   |     1024   |  33,393 |        3.126       |     1.21d     |     0.055     |    0.74   |   5.94  |
 
 ## Notice and tips
-> loading BERT data takes a while. Please send us e-mail or leave comments on github if have any questions.
-
+> loading BERT data takes a while. 
 ## License
 this repository is MIT-licensed. It is created based on [fairseq](https://github.com/pytorch/fairseq), 
 [NVIDIA-BERT](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT), and 
 [pytorch](https://github.com/pytorch/pytorch) 
+
+Please send us e-mail or leave comments on github if have any questions.
+
+Copyright (c) 2020 Yifan Ding, Weninger Lab
 
 
 
