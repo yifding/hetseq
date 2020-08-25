@@ -19,7 +19,7 @@ Git Clone and Install Packages
 
 	$ git clone https://github.com/yifding/hetseq.git
 	$ cd /path/to/hetseq
-	$ pip install -r requirement.txt 
+	$ pip install -r requirements.txt 
 	$ pip install --editable . 
 
 Download BERT Processed File
