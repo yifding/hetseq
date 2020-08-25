@@ -72,7 +72,8 @@ this repository is MIT-licensed. It is created based on [fairseq](https://github
 
 Please send us e-mail or leave comments on github if have any questions.
 
-Copyright (c) 2020 Yifan Ding, Weninger Lab
+
+Copyright (c) 2020 Yifan Ding and [Weninger Lab](https://www3.nd.edu/~tweninge/)
 
 
 
