@@ -48,7 +48,7 @@ class Task(object):
         Args:
             split (str): name of the split (e.g., train, valid, test)
         Returns:
-            a :class:`~fairseq.data.FairseqDataset` corresponding to *split*
+            a :class:`~torch.utils.data.Dataset` corresponding to *split*
         """
         if split not in self.datasets:
             raise KeyError('Dataset not loaded: ' + split)
@@ -87,7 +87,7 @@ class Task(object):
             epoch (int, optional): the epoch to start the iterator from
                 (default: 0).
         Returns:
-            ~fairseq.iterators.EpochBatchIterator: a batched iterator over the
+            ~iterators.EpochBatchIterator: a batched iterator over the
                 given dataset split
         """
         # For default fairseq task, return same iterator across epochs
@@ -127,12 +127,12 @@ class Task(object):
 
     def build_model(self, args):
         """
-        Build the :class:`~fairseq.models.BaseFairseqModel` instance for this
+        Build the :class:`~torch.nn.Module` instance for this
         task.
         Args:
             args (argparse.Namespace): parsed command-line arguments
         Returns:
-            a :class:`~fairseq.models.BaseFairseqModel` instance
+            a :class:`~torch.nn.Module` instance
         """
         raise NotImplementedError
 
@@ -142,10 +142,9 @@ class Task(object):
         for the given *model* and *sample*.
         Args:
             sample (dict): the mini-batch. The format is defined by the
-                :class:`~fairseq.data.FairseqDataset`.
-            model (~fairseq.models.BaseFairseqModel): the model
-            criterion (~fairseq.criterions.FairseqCriterion): the criterion
-            optimizer (~fairseq.optim.FairseqOptimizer): the optimizer
+                :class:`~torch.utils.data.Dataset`.
+            model (~torch.nn.Module): the model
+            optimizer (~optim._Optimizer): the optimizer
             ignore_grad (bool): multiply loss by 0 if this is set to True
         Returns:
             tuple:
@@ -187,12 +186,9 @@ class Task(object):
 class LanguageModelingTask(Task):
     """
     Train a language model, currently support BERT.
-
-
-    Args: 
-	args: parsed from command line
-
-    	dictionary: the BPE dictionary for the input of the language model
+    Args:
+        args: parsed from command line
+        dictionary: the BPE dictionary for the input of the language model
     """
 
     def __init__(self, args, dictionary):
@@ -215,7 +211,6 @@ class LanguageModelingTask(Task):
         """
         dictionary = cls.load_dictionary(cls, args.dict)
 
-        #return cls(args, dictionary, output_dictionary, targets=targets)
         return cls(args, dictionary)
 
     def build_model(self, args):
@@ -323,8 +318,6 @@ class MNISTNet(nn.Module):
         self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x, target, eval=False):
-        # print('shape', x.shape, target.shape)
-        # print(target)
 
         x = self.conv1(x)
         x = F.relu(x)
@@ -339,5 +332,4 @@ class MNISTNet(nn.Module):
         x = self.fc2(x)
         output = F.log_softmax(x, dim=1)
         loss = F.nll_loss(output, target)
-        # return loss if not eval else output, loss
         return loss
