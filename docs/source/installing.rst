@@ -28,10 +28,10 @@ Download BERT Processed File
 (Required to run ``bert`` model)
 Download data files including training corpus, model configuration, and BPE dictionary. Test corpus from `here <https://drive.google.com/file/d/1ZPJVAiV7PsewChi7xKACrjuniJ2N9Sry/view?usp=sharing>`__, full data from `this link <https://drive.google.com/file/d/1Vq_UO-T9345uYs8a7zloukGfhDXSDd2A/view?usp=sharing>`__. Download ``test_DATA.zip`` for test or ``DATA.zip`` for full run, unzip it and place the ``preprocessing/`` directory inside the package directory.
 
-Download MNIST Dataset (deprecated)
+Download MNIST Dataset (not required)
 -----------------------------------
 
-(Required to run ``mnist`` model)
+(For ``mnist`` model)
 Download MNIST dataset from ``torchvision``, see example `here <https://github.com/pytorch/examples/blob/master/mnist/main.py#L114>`__.
 
 .. code:: python
