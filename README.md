@@ -7,7 +7,10 @@ HetSeq: Distributed GPU Training on Heterogeneous Infrastructure, Proc. of Assoc
 Author: Yifan Ding (yding4@nd.edu)
 
 **arxiv paper available**: https://arxiv.org/abs/2009.14783
+
 **Documentation available**: https://hetseq.readthedocs.io 
+
+**Medium towards data science Post:** [Training BERT at a University](https://towardsdatascience.com/training-bert-at-a-university-eedcf940c754)
 
 Documentation includes [Distributed Setting](https://hetseq.readthedocs.io/en/master/distribute.html), [Scripts to Run HetSeq](https://hetseq.readthedocs.io/en/master/examples.html), [Extending HetSeq](https://hetseq.readthedocs.io/en/master/extending.html), [Parameter Explanation](https://hetseq.readthedocs.io/en/master/parameter.html) and [Code Reference](https://hetseq.readthedocs.io/en/master/task.html).
 
