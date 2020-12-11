@@ -1,7 +1,7 @@
 # HetSeq: Distributed GPU Training on Heterogeneous Infrastructure
 This is our coding implementation for the paper:
 
->Yifan Ding, Nicholas Botzer, Tim Weninger (2020). 
+>Yifan Ding, Nicholas Botzer, Tim Weninger. 
 HetSeq: Distributed GPU Training on Heterogeneous Infrastructure, Proc. of Association for the Advancement of Artificial Intelligence (AAAI) Innovative Application of Artificial Intelligence, February 2021.
 
 Author: Yifan Ding (yding4@nd.edu)
