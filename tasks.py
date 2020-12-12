@@ -259,7 +259,7 @@ class LanguageModelingTask(Task):
 
 
 class BertFineTuningTask(Task):
-    def __init__(self, dictionary):
+    def __init__(self, args, dictionary):
         super(BertFineTuningTask, self).__init__(args)
         self.dictionary = dictionary
 
@@ -283,11 +283,11 @@ class BertFineTuningTask(Task):
 
             # **YD** add load state_dict from pre-trained model
             if args.hetseq_state_dict is not None:
-                state_dict = torch.load(args.hetseq_state_dict)['model']
+                state_dict = torch.load(args.hetseq_state_dict, map_location='cpu')['model']
                 if args.load_state_dict_strict:
-                    model.load_state_dict(state_dict, map_location='cpu', strict=True)
+                    model.load_state_dict(state_dict, strict=True)
                 else:
-                    model.load_state_dict(state_dict, map_location='cpu', strict=False)
+                    model.load_state_dict(state_dict, strict=False)
         else:
             raise ValueError('Unknown fine_tunning task!')
         return model
@@ -299,41 +299,19 @@ class BertFineTuningTask(Task):
         """
 
         """
-        path = self.args.data
-        if not os.path.exists(path):
-            raise FileNotFoundError(
-                "Dataset not found: ({})".format(path)
-            )
-
-        files = [os.path.join(path, f) for f in os.listdir(path)] if os.path.isdir(path) else [path]
-        files = sorted([f for f in files if split in f])
-
-        # # debug
-        if self.args.num_file > 0:
-            files = files[0:self.args.num_file]
-
-        assert len(files) > 0, "no suitable file in split ***{}***".format(split)
-
-        datasets = []
-        for i, f in enumerate(files):
-            datasets.append(BertH5pyData(f))
-
-        dataset = ConBertH5pyData(datasets)
-
-        print('| loaded {} sentences from: {}'.format(len(dataset), path), flush=True)
-
-        self.datasets[split] = dataset
-        print('| loading finished')
+        assert split in ['train', 'validation', 'test']
+        if split in self.datasets:
+            return self.datasets[split]
         """
 
         # **YD**, add args in option.py for fine-tuning task
         data_files = {}
         if self.args.train_file is not None:
-            data_files["train"] = data_args.train_file
+            data_files["train"] = self.args.train_file
         if self.args.validation_file is not None:
-            data_files["validation"] = data_args.validation_file
+            data_files["validation"] = self.args.validation_file
         if self.args.test_file is not None:
-            data_files["test"] = data_args.test_file
+            data_files["test"] = self.args.test_file
         extension = self.args.extension_file
 
         from datasets import load_dataset
