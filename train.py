@@ -44,6 +44,8 @@ def main(args, init_distributed=False):
         task = tasks.LanguageModelingTask.setup_task(args)
     elif args.task == 'mnist':
         task = tasks.MNISTTask.setup_task(args)
+    elif args.task == 'BertForTokenClassification':
+        task = tasks.BertFineTuningTask.setup_task(args)
     assert task != None
 
     # Load valid dataset (we load training data below, based on the latest checkpoint)
@@ -196,7 +198,7 @@ def distributed_main(i, args, start_rank=0):
 def cli_main():
     task_parser = argparse.ArgumentParser(allow_abbrev=False)
     task_parser.add_argument('--task', type=str,
-                        default='bert', choices=['bert', 'mnist'])
+                        default='bert', choices=['bert', 'mnist', 'BertForTokenClassification'])
     task_parser.add_argument('--optimizer', type=str,
                              default='adam', choices=['adam', 'adadelta'])
     task_parser.add_argument('--lr-scheduler', type=str,
