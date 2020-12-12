@@ -277,11 +277,11 @@ class BertFineTuningTask(Task):
         if args.task == 'BertForTokenClassification':
             from bert_modeling import BertForTokenClassification, BertConfig
             config = BertConfig.from_json_file(args.config_file)
-            # mention detection, num_label is by default 3
+            # **YD** mention detection, num_label is by default 3
             num_label = args.num_label if hasattr(args, 'num_label') else 3
             model = BertForTokenClassification(config, num_label)
 
-            #**YD** add load state_dict from pre-trained model
+            # **YD** add load state_dict from pre-trained model
             if args.hetseq_state_dict is not None:
                 state_dict = torch.load(args.hetseq_state_dict)['model']
                 if args.load_state_dict_strict:
