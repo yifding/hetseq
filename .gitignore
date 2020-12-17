@@ -10,3 +10,4 @@ __pycache__/
 *.cpp
 BERT_DATA.py
 BERT_DATA_test.py
+test/script
