@@ -259,9 +259,9 @@ class LanguageModelingTask(Task):
 
 
 class BertFineTuningTask(Task):
-    def __init__(self, args, dictionary):
+    def __init__(self, args, tokenizer):
         super(BertFineTuningTask, self).__init__(args)
-        self.dictionary = dictionary
+        self.tokenizer = tokenizer
 
     @classmethod
     def setup_task(cls, args, **kwargs):
@@ -269,9 +269,13 @@ class BertFineTuningTask(Task):
         Args:
             args (argparse.Namespace): parsed command-line arguments
         """
-        dictionary = cls.load_dictionary(cls, args.dict)
 
-        return cls(args, dictionary)
+        # **YD** add BertTokenizerFast to be suitable for CONLL2003 NER task, pipeline is similar to
+        # https://github.com/huggingface/transformers/tree/master/examples/token-classification
+        from transformers import BertTokenizerFast
+        tokenizer = BertTokenizerFast(args.dict)
+
+        return cls(args, tokenizer)
 
     def build_model(self, args):
         if args.task == 'BertForTokenClassification':
@@ -319,6 +323,8 @@ class BertFineTuningTask(Task):
 
         if self.args.train_file is not None:
             self.datasets["train"] = tmp_datasets["train"]
+            print(self.datasets["train"].features)
+            raise ValueError('quit by intention!')
         if self.args.validation_file is not None:
             self.datasets["validation"] = tmp_datasets["validation"]
         if self.args.test_file is not None:
