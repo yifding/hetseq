@@ -8,6 +8,6 @@ support/
 __pycache__/
 *.so
 *.cpp
-hetseq/BERT_DATA.py
-hetseq/BERT_DATA_test.py
+hetseq/data/BERT_DATA.py
+hetseq/data/BERT_DATA_test.py
 test/script
