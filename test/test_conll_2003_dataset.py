@@ -3,7 +3,7 @@ import argparse
 
 from datasets import load_dataset, ClassLabel
 
-from ..bert_modeling import (
+from .bert_modeling import (
     BertConfig,
     BertForPreTraining,
     BertForTokenClassification,
