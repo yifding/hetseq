@@ -12,7 +12,7 @@ BERT Task
 .. code-block:: console
 
 	$ DIST=~/hetseq
-	$ python3 ${DIST}/train.py  \
+	$ python3 ${DIST}/hetseq/train.py  \
 		--task bert   --data ${DIST}/preprocessing/test_128/ \
 		--dict ${DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
 		--config_file ${DIST}/preprocessing/uncased_L-12_H-768_A-12/bert_config.json  \
@@ -27,7 +27,7 @@ BERT Task
 .. code:: console
 
 	$ DIST=~/hetseq
-	$ python3 ${DIST}/train.py  \
+	$ python3 ${DIST}/hetseq/train.py  \
 		--task bert   --data ${DIST}/preprocessing/test_128/ \
 		--dict ${DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
 		--config_file ${DIST}/preprocessing/uncased_L-12_H-768_A-12/bert_config.json  \
@@ -45,7 +45,7 @@ BERT Task
 .. code:: console
 
 	$ DIST=~/hetseq
-	$ python3 ${DIST}/train.py  \
+	$ python3 ${DIST}/hetseq/train.py  \
 		--task bert   --data ${DIST}/preprocessing/test_128/ \
 		--dict ${DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
 		--config_file ${DIST}/preprocessing/uncased_L-12_H-768_A-12/bert_config.json  \
@@ -61,7 +61,7 @@ BERT Task
 .. code:: console
 
 	$ DIST=~/hetseq
-	$ python3 ${DIST}/train.py  \
+	$ python3 ${DIST}/hetseq/train.py  \
 		--task bert   --data ${DIST}/preprocessing/test_128/ \
 		--dict ${DIST}/preprocessing/uncased_L-12_H-768_A-12/vocab.txt  \
 		--config_file ${DIST}/preprocessing/uncased_L-12_H-768_A-12/bert_config.json  \
@@ -82,7 +82,7 @@ MNIST Task
 .. code:: console
 
 	$ DIST=~/hetseq
-	$ python3 ${DIST}/train.py  \
+	$ python3 ${DIST}/hetseq/train.py  \
     		--task mnist  --optimizer adadelta --lr-scheduler PolynomialDecayScheduler  \
     		--data ${DIST}  --clip-norm 100 \
     		--max-sentences 64  --fast-stat-sync --max-epoch 20 --update-freq 1  \
@@ -96,7 +96,7 @@ MNIST Task
 .. code:: console
 
 	$ DIST=~/hetseq
-	$ python3 ${DIST}/train.py  \
+	$ python3 ${DIST}/hetseq/train.py  \
     		--task mnist  --optimizer adadelta --lr-scheduler PolynomialDecayScheduler  \
     		--data ${DIST}  --clip-norm 100 \
     		--max-sentences 64  --fast-stat-sync --max-epoch 20 --update-freq 1  \
@@ -112,7 +112,7 @@ MNIST Task
 .. code:: console
 	
 	$ DIST=~/hetseq
-	$ python3 ${DIST}/train.py  \
+	$ python3 ${DIST}/hetseq/train.py  \
     		--task mnist  --optimizer adadelta --lr-scheduler PolynomialDecayScheduler  \
     		--data ${DIST}  --clip-norm 100 \
     		--max-sentences 64  --fast-stat-sync --max-epoch 20 --update-freq 1  \
@@ -127,7 +127,7 @@ MNIST Task
 .. code:: console
 
 	$ DIST=~/hetseq
-	$ python3 ${DIST}/train.py  \
+	$ python3 ${DIST}/hetseq/train.py  \
     		--task mnist  --optimizer adadelta --lr-scheduler PolynomialDecayScheduler  \
     		--data ${DIST}  --clip-norm 100 \
     		--max-sentences 64  --fast-stat-sync --max-epoch 20 --update-freq 1  \
@@ -143,4 +143,4 @@ Evaluate MNIST Task
 .. code:: console
 
 	$ DIST=~/hetseq
-	$ python3 ${DIST}/eval_mnist.py --model_ckpt /path/to/check/point --mnist_dir ${DIST}
+	$ python3 ${DIST}/hetseq/eval_mnist.py --model_ckpt /path/to/check/point --mnist_dir ${DIST}

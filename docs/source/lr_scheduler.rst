@@ -1,4 +1,4 @@
 Learning Rate Scheduler
 -----------------------
 
-.. autoclass:: lr_scheduler.PolynomialDecayScheduler
+.. autoclass:: hetseq.lr_scheduler.PolynomialDecayScheduler

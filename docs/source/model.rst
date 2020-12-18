@@ -1,8 +1,8 @@
 Model
 -----
 
-.. autoclass:: tasks.MNISTNet
+.. autoclass:: hetseq.tasks.MNISTNet
 
-.. autoclass:: bert_modeling.BertConfig
+.. autoclass:: hetseq.bert_modeling.BertConfig
 
-.. autoclass:: bert_modeling.BertForPreTraining
+.. autoclass:: hetseq.bert_modeling.BertForPreTraining

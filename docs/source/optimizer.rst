@@ -1,6 +1,6 @@
 Optimizer
 ---------
 
-.. autoclass:: optim.Adam
+.. autoclass:: hetseq.optim.Adam
 
-.. autoclass:: optim.Adadelta
+.. autoclass:: hetseq.optim.Adadelta

@@ -1,8 +1,8 @@
 Meters
 ------
-.. autoclass:: meters.AverageMeter
+.. autoclass:: hetseq.meters.AverageMeter
 
-.. autoclass:: meters.TimeMeter
+.. autoclass:: hetseq.meters.TimeMeter
 
-.. autoclass:: meters.StopwatchMeter
+.. autoclass:: hetseq.meters.StopwatchMeter
 
