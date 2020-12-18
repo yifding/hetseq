@@ -26,8 +26,8 @@ class NumpyExtension(Extension):
 
 extensions = [
     NumpyExtension(
-        'data.data_utils_fast',
-        sources=['data/data_utils_fast.pyx'],
+        'hetseq.data.data_utils_fast',
+        sources=['hetseq/data/data_utils_fast.pyx'],
         language='c++',
         extra_compile_args=extra_compile_args,
     ),
