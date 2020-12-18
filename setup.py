@@ -36,8 +36,8 @@ extensions = [
 
 setup(
     name='hetseq',
-    version='0.0.1',
-    description='cython module for indices building',
+    version='1.0.0',
+    description='Distributed GPU Training on Heterogeneous Infrastructureg',
     setup_requires=[
         'cython',
         'numpy',
