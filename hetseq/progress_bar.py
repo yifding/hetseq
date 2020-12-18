@@ -4,8 +4,8 @@ from numbers import Number
 import os
 import sys
 
-import distributed_utils
-from meters import AverageMeter, StopwatchMeter, TimeMeter
+from hetseq import distributed_utils
+from hetseq.meters import AverageMeter, StopwatchMeter, TimeMeter
 
 g_tbmf_wrapper = None
 

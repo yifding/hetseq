@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import datasets
 
-from data import MNISTDataset, BertH5pyData, ConBertH5pyData, data_utils, iterators
+from hetseq.data import MNISTDataset, BertH5pyData, ConBertH5pyData, data_utils, iterators
 
 
 class Task(object):
@@ -259,9 +259,9 @@ class LanguageModelingTask(Task):
 
 
 class BertFineTuningTask(Task):
-    def __init__(self, dictionary):
+    def __init__(self, args, tokenizer):
         super(BertFineTuningTask, self).__init__(args)
-        self.dictionary = dictionary
+        self.tokenizer = tokenizer
 
     @classmethod
     def setup_task(cls, args, **kwargs):
@@ -269,20 +269,68 @@ class BertFineTuningTask(Task):
         Args:
             args (argparse.Namespace): parsed command-line arguments
         """
-        dictionary = cls.load_dictionary(cls, args.dict)
 
-        return cls(args, dictionary)
+        # **YD** add BertTokenizerFast to be suitable for CONLL2003 NER task, pipeline is similar to
+        # https://github.com/huggingface/transformers/tree/master/examples/token-classification
+        from transformers import BertTokenizerFast
+        tokenizer = BertTokenizerFast(args.dict)
+
+        return cls(args, tokenizer)
 
     def build_model(self, args):
         if args.task == 'BertForTokenClassification':
-            from bert_modeling import BertForPreTraining, BertConfig
+            from bert_modeling import BertForTokenClassification, BertConfig
             config = BertConfig.from_json_file(args.config_file)
-            # mention detection, num_label is by default 3
+            # **YD** mention detection, num_label is by default 3
             num_label = args.num_label if hasattr(args, 'num_label') else 3
             model = BertForTokenClassification(config, num_label)
+
+            # **YD** add load state_dict from pre-trained model
+            if args.hetseq_state_dict is not None:
+                state_dict = torch.load(args.hetseq_state_dict, map_location='cpu')['model']
+                if args.load_state_dict_strict:
+                    model.load_state_dict(state_dict, strict=True)
+                else:
+                    model.load_state_dict(state_dict, strict=False)
         else:
             raise ValueError('Unknown fine_tunning task!')
         return model
+
+    def load_dataset(self, split, **kwargs):
+        """Load a given dataset split.
+        Args:
+            split (str): name of the split (e.g., train, valid, test)
+        """
+
+        """
+        assert split in ['train', 'validation', 'test']
+        if split in self.datasets:
+            return self.datasets[split]
+        """
+
+        # **YD**, add args in option.py for fine-tuning task
+        data_files = {}
+        if self.args.train_file is not None:
+            data_files["train"] = self.args.train_file
+        if self.args.validation_file is not None:
+            data_files["validation"] = self.args.validation_file
+        if self.args.test_file is not None:
+            data_files["test"] = self.args.test_file
+        extension = self.args.extension_file
+
+        from datasets import load_dataset
+        tmp_datasets = load_dataset(extension, data_files=data_files)
+
+        if self.args.train_file is not None:
+            self.datasets["train"] = tmp_datasets["train"]
+            print(self.datasets["train"].features)
+            raise ValueError('quit by intention!')
+        if self.args.validation_file is not None:
+            self.datasets["validation"] = tmp_datasets["validation"]
+        if self.args.test_file is not None:
+            self.datasets["test"] = tmp_datasets["test"]
+
+        print('| loading finished')
 
 
 class MNISTTask(Task):
@@ -310,6 +358,7 @@ class MNISTTask(Task):
         path = self.args.data
 
         if not os.path.exists(path):
+            os.makedirs(path)
             raise FileNotFoundError(
                 "Dataset not found: ({})".format(path)
             )

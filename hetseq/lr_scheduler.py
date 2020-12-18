@@ -1,6 +1,6 @@
 import math
 import torch
-from optim import _Optimizer
+from hetseq.optim import _Optimizer
 
 
 class _LRScheduler(object):

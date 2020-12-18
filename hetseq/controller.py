@@ -8,14 +8,15 @@ import sys
 import torch
 from torch.nn.parallel.distributed import DistributedDataParallel as DDP
 
-import utils
-import optim
-import lr_scheduler
-import checkpoint_utils
-import distributed_utils
+from hetseq import (
+    utils,
+    optim,
+    lr_scheduler,
+    checkpoint_utils,
+    distributed_utils,
+)
 
-
-from meters import AverageMeter, StopwatchMeter, TimeMeter
+from hetseq.meters import AverageMeter, StopwatchMeter, TimeMeter
 
 
 class Controller(object):

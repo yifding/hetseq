@@ -79,6 +79,34 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
             parser.add_argument('--data', type=str,
                                 help='path including data')
 
+        elif task == 'BertForTokenClassification':
+            parser.add_argument('--task', type=str, default='BertForTokenClassification')
+            parser.add_argument('--data', type=str,
+                                help='path including data')
+
+            group.add_argument('--dict', type=str, metavar='PATH of a file',
+                               help='PATH to dictionary')
+            group.add_argument('--config_file', type=str, metavar='PATH of a file',
+                               help='PATH to bert model configuration', required=True)
+            group.add_argument('--max_pred_length', type=int, default=512,
+                               help='max number of tokens in a sentence')
+
+            group.add_argument('--hetseq_state_dict', type=str, default=None,
+                               help='PATH to dictionary')
+            group.add_argument('--train_file', type=str, default=None,
+                               help='PATH to training file')
+            group.add_argument('--validation_file', type=str, default=None,
+                               help='PATH to validation file')
+            group.add_argument('--test_file', type=str, default=None,
+                               help='PATH to test file')
+            group.add_argument('--extension_file', type=str, default=None,
+                               help='PATH to extension file to build NER datasets')
+            group.add_argument('--num_label', type=int, default=3,
+                               help='Number of labels in NER output')
+            group.add_argument('--load_state_dict_strict', type=eval,
+                               default="False",
+                               help='whether strictly load state_dict')
+
 
 
         else:

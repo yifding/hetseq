@@ -18,7 +18,7 @@ from torch import nn
 from torch.nn import CrossEntropyLoss
 from torch.utils import checkpoint
 
-from file_utils import cached_path
+from hetseq.file_utils import cached_path
 
 from torch.nn import Module
 from torch.nn.parameter import Parameter
