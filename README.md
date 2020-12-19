@@ -72,6 +72,7 @@ Running BERT on nodes with 4 GPUs each.
 
 ## Known issues
 - [ ] currently not supporting continue training
+- [ ] mnist datasets download does not support multiple GPUs
 
 ## future patch
 - [ ] bert processing pipeline not included
