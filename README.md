@@ -69,6 +69,17 @@ Running BERT on nodes with 4 GPUs each.
 
 ## Notice and tips
 > loading BERT data takes a while. 
+
+## Known issues
+- [ ] currently not supporting continue training
+
+## future patch
+- [ ] bert processing pipeline not included
+- [ ] interface of datasets/transformers not included
+- [ ] hetseq not supporting download from pip
+- [ ] evaluation separate/combined not included
+- [ ] fp16 support
+
 ## License
 this repository is MIT-licensed. It is created based on [fairseq](https://github.com/pytorch/fairseq), 
 [NVIDIA-BERT](https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/LanguageModeling/BERT), and 
