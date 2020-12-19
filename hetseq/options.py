@@ -101,8 +101,12 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
                                help='PATH to test file')
             group.add_argument('--extension_file', type=str, default=None,
                                help='PATH to extension file to build NER datasets')
+
+            """ **YD** obtain by reading the NER data
             group.add_argument('--num_label', type=int, default=3,
                                help='Number of labels in NER output')
+            """
+            
             group.add_argument('--load_state_dict_strict', type=eval,
                                default="False",
                                help='whether strictly load state_dict')
@@ -211,7 +215,6 @@ def add_optimization_args(parser, optimizer='adam', lr_scheduler='PolynomialDeca
 
 
     else:
-        print(optimizer, 'adadelta')
         raise ValueError('unsupported optimizer: {}'.format(optimizer))
 
     if lr_scheduler == 'PolynomialDecayScheduler':
