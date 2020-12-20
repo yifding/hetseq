@@ -106,7 +106,7 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
             group.add_argument('--num_label', type=int, default=3,
                                help='Number of labels in NER output')
             """
-            
+
             group.add_argument('--load_state_dict_strict', type=eval,
                                default="False",
                                help='whether strictly load state_dict')
