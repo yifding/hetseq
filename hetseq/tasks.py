@@ -8,7 +8,14 @@ import torch.nn.functional as F
 import torchvision
 
 from hetseq import distributed_utils
-from hetseq.data import MNISTDataset, BertH5pyData, ConBertH5pyData, data_utils, iterators
+from hetseq.data import (
+    BertNerDataset,
+    MNISTDataset,
+    BertH5pyData,
+    ConBertH5pyData,
+    data_utils,
+    iterators,
+)
 
 _NER_COLUMNS = ['input_ids', 'labels', 'token_type_ids', 'attention_mask']
 
@@ -277,21 +284,24 @@ class BertForTokenClassificationTask(Task):
         # 1.obtain tokenizer and data_collator
 
         import datasets
-        from transformers import BertTokenizerFast, DataCollatorForTokenClassification
+        from datasets import ClassLabel
+        # from transformers import BertTokenizerFast, DataCollatorForTokenClassification
+        from transformers import BertTokenizerFast
+        from hetseq.data_collator import YD_DataCollatorForTokenClassification
 
         tokenizer = BertTokenizerFast(args.dict)
-        data_collator = DataCollatorForTokenClassification(tokenizer)
+        data_collator = YD_DataCollatorForTokenClassification(tokenizer, max_length=args.max_pred_length, padding=True)
 
         # 2. process datasets, (tokenization of NER data)
         # **YD**, add args in option.py for fine-tuning task
         data_files = {}
-        if self.args.train_file is not None:
-            data_files["train"] = self.args.train_file
-        if self.args.validation_file is not None:
-            data_files["validation"] = self.args.validation_file
-        if self.args.test_file is not None:
-            data_files["test"] = self.args.test_file
-        extension = self.args.extension_file
+        if args.train_file is not None:
+            data_files["train"] = args.train_file
+        if args.validation_file is not None:
+            data_files["validation"] = args.validation_file
+        if args.test_file is not None:
+            data_files["test"] = args.test_file
+        extension = args.extension_file
         dataset = datasets.load_dataset(extension, data_files=data_files)
 
         # 3. setup num_labels
@@ -333,7 +343,7 @@ class BertForTokenClassificationTask(Task):
         def tokenize_and_align_labels(examples, label_all_tokens=False):
             tokenized_inputs = tokenizer(
                 examples[text_column_name],
-                padding=False,
+                padding=True,
                 truncation=True,
                 # We use this argument because the texts in our dataset are lists of words (with a label for each word).
                 is_split_into_words=True,
@@ -388,9 +398,9 @@ class BertForTokenClassificationTask(Task):
             from hetseq.bert_modeling import BertForTokenClassification, BertConfig
             config = BertConfig.from_json_file(args.config_file)
             # **YD** mention detection, num_label is by default 3
-            assert hasattr(args, 'num_label')
-            num_label = args.num_label
-            model = BertForTokenClassification(config, num_label)
+            assert hasattr(args, 'num_labels')
+            num_labels = args.num_labels
+            model = BertForTokenClassification(config, num_labels)
 
             # **YD** add load state_dict from pre-trained model
             # could make only master model to load from state_dict, not quite sure whether this works for single GPU
@@ -420,17 +430,17 @@ class BertForTokenClassificationTask(Task):
             return
 
         if 'train' in self.args.tokenized_datasets:
-            datasets['train'] = BertNerDataset(self.args.tokenized_datasets['train'], self.args)
+            self.datasets['train'] = BertNerDataset(self.args.tokenized_datasets['train'], self.args)
         elif 'validation' in dataset:
-            datasets['valid'] = BertNerDataset(self.args.tokenized_datasets['validation'], self.args)
+            self.datasets['valid'] = BertNerDataset(self.args.tokenized_datasets['validation'], self.args)
         elif 'test' in dataset:
-            datasets['test'] = BertNerDataset(self.args.tokenized_datasets['test'], self.args)
+            self.datasets['test'] = BertNerDataset(self.args.tokenized_datasets['test'], self.args)
         else:
             raise ValueError('dataset must contain "train"/"validation"/"test"')
 
         print('| loading finished')
 
-    ''' # **YD** may need to write customized train_step, we will see 
+    # **YD** may need to write customized train_step, we will see
     def train_step(self, sample, model, optimizer, ignore_grad=False):
         """
         Do forward and backward, and return the loss as computed by *criterion*
@@ -453,10 +463,10 @@ class BertForTokenClassificationTask(Task):
         loss = model(**sample)
         if ignore_grad:
             loss *= 0
-        if sample is None or len(sample) == 0 or len(sample[0][0]) == 0:
+        if sample is None or len(sample['labels']) == 0 or len(sample['labels'][0]) == 0:
             sample_size = 0
         else:
-            sample_size = len(sample[0][0])
+            sample_size = len(sample['labels'][0])
 
         nsentences = sample_size
 
@@ -470,7 +480,7 @@ class BertForTokenClassificationTask(Task):
 
         optimizer.backward(loss)
         return loss, sample_size, logging_output
-    '''
+
 
 class MNISTTask(Task):
     def __init__(self, args):

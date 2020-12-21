@@ -1,5 +1,8 @@
 from functools import lru_cache
 
+import torch
+import numpy as np
+
 
 class BertNerDataset(torch.utils.data.Dataset):
     def __init__(self, dataset, args):
@@ -8,7 +11,7 @@ class BertNerDataset(torch.utils.data.Dataset):
 
     @lru_cache(maxsize=8)
     def __getitem__(self, index):
-        return self.dataset[index]
+        return self.dataset.__getitem__(index)
 
     def __len__(self):
         return len(self.dataset)
@@ -22,7 +25,12 @@ class BertNerDataset(torch.utils.data.Dataset):
         return len(self.dataset[index]['labels'])
 
     def collater(self, samples):
-        return self.args.data_collator(samples)
+        if len(samples) == 0:
+            return None
+        else:
+            return self.args.data_collator(samples)
 
     def set_epoch(self, epoch):
         pass
+
+
