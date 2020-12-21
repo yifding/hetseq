@@ -28,7 +28,7 @@ def get_training_parser(task='bert', optimizer='adam', lr_scheduler='PolynomialD
 def add_dataset_args(parser, train=False, gen=False,  task='bert'):
     group = parser.add_argument_group('Dataset and data loading')
 
-    group.add_argument('--num-workers', default=0, type=int, metavar='N',
+    group.add_argument('--num-workers', default=-1, type=int, metavar='N',
                        help='how many subprocesses to use for data loading')
     group.add_argument('--max-tokens', type=int, metavar='N',
                        help='maximum number of tokens in a batch')
