@@ -52,7 +52,7 @@ def main(args, init_distributed=False):
     elif args.task == 'mnist':
         task = tasks.MNISTTask.setup_task(args)
     elif args.task == 'BertForTokenClassification':
-        task = tasks.BertFineTuningTask.setup_task(args)
+        task = tasks.BertForTokenClassificationTask.setup_task(args)
     assert task != None
 
     # Load valid dataset (we load training data below, based on the latest checkpoint)
