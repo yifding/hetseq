@@ -125,8 +125,11 @@ def main(args):
     model = prepare_model(args)
 
     for index, input in enumerate(data_loader):
-        print(model(**input))
-        break
+        if index == 0:
+            print(model(**input))
+        print('input_ids shape', input['input_ids'].shape, 'labels shape', input['labels'].shape)
+        if index == 10:
+            break
 
 def prepare_tokenizer(args):
     config = BertConfig.from_json_file(args.config_file)
