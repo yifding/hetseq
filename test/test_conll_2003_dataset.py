@@ -71,6 +71,8 @@ def main(args):
             is_split_into_words=True,
             return_offsets_mapping=True,
         )
+        #print('tokenized_inputs', tokenized_inputs)
+
         offset_mappings = tokenized_inputs.pop("offset_mapping")
         labels = []
         for label, offset_mapping in zip(examples[label_column_name], offset_mappings):
@@ -98,11 +100,14 @@ def main(args):
 
     tokenized_datasets = dataset.map(
         tokenize_and_align_labels,
+        # batched=True, **YD** test non-batched results
         batched=True,
         num_proc=8,
         load_from_cache_file=False,
     )
 
+    print(tokenized_datasets['train'])
+    print(tokenized_datasets['train'][0])
     train_dataset = tokenized_datasets['train']
 
     # **YD** core code to keep only usefule parameters for model
