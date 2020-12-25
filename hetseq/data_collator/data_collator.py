@@ -2,7 +2,14 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, NewType, Optional, Tuple, Union
 
 import torch
+import numpy as np
 from transformers.tokenization_utils_base import BatchEncoding, PaddingStrategy, PreTrainedTokenizerBase
+
+_NER_COLUMNS = ['input_ids', 'labels', 'token_type_ids', 'attention_mask']
+INPUT_IDS_PAD = 0
+LABELS_PAD = -100
+TOKEN_TYPE_ID_PAD = 0
+ATTENTION_MASK_PAD = 0
 
 
 @dataclass
@@ -42,9 +49,77 @@ class YD_DataCollatorForTokenClassification:
 
     def __call__(self, features):
         label_name = "label" if "label" in features[0].keys() else "labels"
+
+        # **YD** if two features have different lengths, bugs occur in padding.
+        # manually padding features to the right_side
+        # _NER_COLUMNS = ['input_ids', 'labels', 'token_type_ids', 'attention_mask']
+
+        len_list = [len(feature[label_name]) for feature in features]
+        max_len = max(len_list)
+
+        # print(len(features), features)
+        def process_label(label):
+            if type(label) is torch.Tensor:
+                return label.tolist()
+            else:
+                assert type(label) is list
+                return label
+
+        # **YD** manually padding to solve the NER padding issues.
+        batch = {'input_ids':[], 'labels':[], 'token_type_ids':[], 'attention_mask':[]}
+        for feature in features:
+            if self.tokenizer.padding_side == "right":
+                batch['input_ids'].append(
+                    process_label(feature['input_ids']) + [INPUT_IDS_PAD] * (max_len - len(feature['input_ids']))
+                )
+
+                batch['labels'].append(
+                    process_label(feature['labels']) + [LABELS_PAD] * (max_len - len(feature['labels']))
+                )
+
+                batch['token_type_ids'].append(
+                    process_label(feature['token_type_ids']) + [TOKEN_TYPE_ID_PAD] * (
+                            max_len - len(feature['token_type_ids'])
+                    )
+                )
+
+                batch['attention_mask'].append(
+                    process_label(feature['attention_mask']) + [ATTENTION_MASK_PAD] * (
+                            max_len - len(feature['attention_mask']))
+                )
+
+            else:
+                batch['input_ids'].append(
+                    [INPUT_IDS_PAD] * (max_len - len(feature['input_ids'])) + process_label(feature['input_ids'])
+                )
+
+                batch['labels'].append(
+                    [LABELS_PAD] * (max_len - len(feature['labels'])) + process_label(feature['labels'])
+                )
+
+                batch['token_type_ids'].append(
+                     [TOKEN_TYPE_ID_PAD] * (
+                            max_len - len(feature['token_type_ids'])
+                    ) + process_label(feature['token_type_ids'])
+                )
+
+                batch['attention_mask'].append(
+                    [ATTENTION_MASK_PAD] * (
+                            max_len - len(feature['attention_mask'])) + process_label(feature['attention_mask'])
+                )
+
+        """ # set the first sentence with maximum length does not work!
+        if len_list[0] != max_len:
+            max_index = len_list.index(max_len)
+            features[0], features[max_index] = features[max_index], features[0]
+        """
+
         labels = [feature[label_name] for feature in features] if label_name in features[0].keys() else None
 
-        print(len(features), features)
+        # change the input features from a list of dict to dict of list.
+        #features = {key: [example[key] for example in features] for key in features[0].keys()}
+
+        """
         batch = self.tokenizer.pad(
             features,
             padding=self.padding,
@@ -53,6 +128,7 @@ class YD_DataCollatorForTokenClassification:
             # Conversion to tensors will fail if we have labels as they are not of the same length yet.
             return_tensors="pt" if labels is None else None,
         )
+        """
 
         if labels is None:
             return batch
@@ -73,5 +149,5 @@ class YD_DataCollatorForTokenClassification:
             batch["labels"] = [[self.label_pad_token_id] * (sequence_length - len(label)) + process_label(label) for label in labels]
         """
 
-        batch = {k: torch.tensor(v, dtype=torch.int64).clone().detach() for k, v in batch.items()}
+        batch = {k: torch.from_numpy(np.asarray(v, dtype=np.int64)) for k, v in batch.items()}
         return batch
