@@ -108,7 +108,7 @@ def main(args, init_distributed=False):
         if epoch_itr.epoch % args.save_interval == 0:
             checkpoint_utils.save_checkpoint(args, controller, epoch_itr, valid_losses[0])
 
-        reload_dataset = ':' in getattr(args, 'data', '')
+        reload_dataset = hasattr(args, 'data') and ':' in getattr(args, 'data', '')
         # sharded data: get train iterator for next epoch
         epoch_itr = controller.get_train_iterator(epoch_itr.epoch, load_dataset=reload_dataset)
 
