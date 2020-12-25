@@ -343,7 +343,7 @@ class BertForTokenClassificationTask(Task):
         def tokenize_and_align_labels(examples, label_all_tokens=False):
             tokenized_inputs = tokenizer(
                 examples[text_column_name],
-                padding=True,
+                padding=False,
                 truncation=True,
                 # We use this argument because the texts in our dataset are lists of words (with a label for each word).
                 is_split_into_words=True,
