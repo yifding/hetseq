@@ -7,3 +7,7 @@ __E_MAIL = 'yding4@nd.edu'
 # 3. predict loss, generate predicted label
 # 4. compare predicted label with ground truth label to obtain evaluation results.
 
+if args.test_file is not None:
+    data_files["test"] = args.test_file
+else:
+    raise ValueError('Evaluation must specify test_file!')
