@@ -470,10 +470,10 @@ class BertForTokenClassificationTask(Task):
         loss = model(**sample)
         if ignore_grad:
             loss *= 0
-        if sample is None or len(sample['labels']) == 0 or len(sample['labels'][0]) == 0:
+        if sample is None or len(sample['labels']) == 0:
             sample_size = 0
         else:
-            sample_size = len(sample['labels'][0])
+            sample_size = len(sample['labels'])
 
         nsentences = sample_size
 
