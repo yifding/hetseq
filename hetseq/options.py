@@ -92,7 +92,10 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
                                help='max number of tokens in a sentence')
 
             group.add_argument('--hetseq_state_dict', type=str, default=None,
-                               help='PATH to dictionary')
+                               help='PATH to load hetseq model state dictionary')
+            group.add_argument('--transformers_state_dict', type=str, default=None,
+                               help='PATH to load transformers official model state dictionary')
+
             group.add_argument('--train_file', type=str, default=None,
                                help='PATH to training file')
             group.add_argument('--validation_file', type=str, default=None,

@@ -150,6 +150,8 @@ def prepare_model(args):
     if args.hetseq_state_dict != '':
         # load hetseq state_dictionary
         model.load_state_dict(torch.load(args.hetseq_state_dict, map_location='cpu')['model'], strict=False)
+    elif args.transformers_state_dict != '':
+        model.load_state_dict(torch.load(args.transformers_state_dict, map_location='cpu'), strict=False)
 
     return model
 
@@ -215,6 +217,13 @@ def cli_main():
     parser.add_argument(
         '--hetseq_state_dict',
         help='hetseq pre-trained state dictionary ',
+        type=str,
+        default='',
+    )
+
+    parser.add_argument(
+        '--transformers_state_dict',
+        help='transformers official pre-trained state dictionary ',
         type=str,
         default='',
     )

@@ -411,6 +411,13 @@ class BertForTokenClassificationTask(Task):
                     model.load_state_dict(state_dict, strict=True)
                 else:
                     model.load_state_dict(state_dict, strict=False)
+
+            elif args.transformers_state_dict is not None:
+                state_dict = torch.load(args.transformers_state_dict, map_location='cpu')
+                if args.load_state_dict_strict:
+                    model.load_state_dict(state_dict, strict=True)
+                else:
+                    model.load_state_dict(state_dict, strict=False)
         else:
             raise ValueError('Unknown fine_tunning task!')
         return model
