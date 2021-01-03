@@ -105,7 +105,7 @@ def main(args):
 
     test_dataset = tokenized_datasets['test']
     # **YD** core code to keep only usefule parameters for model
-    test_dataset.set_format(type=train_dataset.format["type"], columns=_NER_COLUMNS)
+    test_dataset.set_format(type=test_dataset.format["type"], columns=_NER_COLUMNS)
 
     # **YD** dataloader
     data_loader = DataLoader(
