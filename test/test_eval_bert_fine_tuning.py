@@ -8,6 +8,8 @@ from hetseq.bert_modeling import (
     BertForPreTraining,
     BertForTokenClassification,
 )
+
+from hetseq import utils
 from hetseq.data_collator import YD_DataCollatorForTokenClassification
 
 from transformers import (
@@ -17,6 +19,9 @@ from transformers import (
 
 import torch
 from torch.utils.data.dataloader import DataLoader
+
+from tqdm import tqdm
+from seqeval.metrics import accuracy_score, f1_score, precision_score, recall_score
 
 
 __DATE__ = '2020/1/3'
@@ -119,10 +124,43 @@ def main(args):
     )
 
     model = prepare_model(args)
-    for index, input in enumerate(data_loader):
-        if index == 0:
-            output = model(**input)
-            print('output', output)
+    model.cuda()
+
+    true_predictions = []
+    true_labels = []
+
+    for index, input in tqdm(enumerate(data_loader)):
+        labels, input['labels'] = input['labels'].tolist(), None
+
+        # print(input.keys())
+        input = utils.move_to_cuda(input)
+        predictions = model(**input)
+        predictions = torch.argmax(predictions, axis=2).tolist()
+
+        true_predictions.extend([
+            [label_list[p] for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(predictions, labels)
+        ])
+
+        true_labels.extend([
+            [label_list[l] for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(predictions, labels)
+        ])
+
+    true_predictions = [true_prediction for true_prediction in true_predictions if true_prediction != []]
+    true_labels = [true_label for true_label in true_labels if true_label != []]
+
+    print('true_predictions', true_predictions[0], true_predictions[-1])
+    print('true_labels', true_labels[0], true_labels[-1])
+
+    print(
+        {
+        "accuracy_score": accuracy_score(true_labels, true_predictions),
+        "precision": precision_score(true_labels, true_predictions),
+        "recall": recall_score(true_labels, true_predictions),
+        "f1": f1_score(true_labels, true_predictions),
+        }
+    )
 
 def prepare_dataset(args):
     data_files = {}
