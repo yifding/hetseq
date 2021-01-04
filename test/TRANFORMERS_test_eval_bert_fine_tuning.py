@@ -39,8 +39,8 @@ _NER_COLUMNS = ['input_ids', 'labels', 'token_type_ids', 'attention_mask']
 def main(args):
     dataset = prepare_dataset(args)
     tokenizer = prepare_tokenizer(args)
-    # data_collator = YD_DataCollatorForTokenClassification(tokenizer)
-    data_collator = DataCollatorForTokenClassification(tokenizer)
+    data_collator = YD_DataCollatorForTokenClassification(tokenizer)
+    # data_collator = DataCollatorForTokenClassification(tokenizer)
 
     if 'test' in dataset:
         column_names = dataset["test"].column_names
@@ -154,8 +154,8 @@ def main(args):
             for prediction, label in zip(predictions, labels)
         ])
 
-    true_predictions = [true_prediction for true_prediction in true_predictions if true_prediction != []]
-    true_labels = [true_label for true_label in true_labels if true_label != []]
+    #true_predictions = [true_prediction for true_prediction in true_predictions if true_prediction != []]
+    #true_labels = [true_label for true_label in true_labels if true_label != []]
 
     print('true_predictions', true_predictions[0], true_predictions[-1])
     print('true_labels', true_labels[0], true_labels[-1])
@@ -168,6 +168,7 @@ def main(args):
         "f1": f1_score(true_labels, true_predictions),
         }
     )
+
 
 def prepare_dataset(args):
     data_files = {}
