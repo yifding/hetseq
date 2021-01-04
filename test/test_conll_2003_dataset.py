@@ -17,6 +17,8 @@ from transformers import (
 import torch
 from torch.utils.data.dataloader import DataLoader
 
+from hetseq.data_collator import YD_DataCollatorForTokenClassification
+
 _NER_COLUMNS = ['input_ids', 'labels', 'token_type_ids', 'attention_mask']
 
 
@@ -26,7 +28,9 @@ def main(args):
 
     # 2. prepare tokenizer from customized dictionary and build data_collator
     tokenizer = prepare_tokenizer(args)
-    data_collator = DataCollatorForTokenClassification(tokenizer)
+    # data_collator = DataCollatorForTokenClassification(tokenizer)
+    data_collator = YD_DataCollatorForTokenClassification(tokenizer)
+    args.data_collator = data_collator
 
     if 'train' in dataset:
         column_names = dataset["train"].column_names
@@ -106,12 +110,13 @@ def main(args):
         load_from_cache_file=False,
     )
 
-    print(tokenized_datasets['train'])
-    print(tokenized_datasets['train'][0])
+    # print(tokenized_datasets['train'])
+    # print(tokenized_datasets['train'][0])
     train_dataset = tokenized_datasets['train']
 
     # **YD** core code to keep only usefule parameters for model
     train_dataset.set_format(type=train_dataset.format["type"], columns=_NER_COLUMNS)
+
 
     # **YD** dataloader
     data_loader = DataLoader(
@@ -131,10 +136,40 @@ def main(args):
 
     for index, input in enumerate(data_loader):
         if index == 0:
+            print('input.keys()', input.keys(), input.items())
             print(model(**input))
         print('input_ids shape', input['input_ids'].shape, 'labels shape', input['labels'].shape)
         if index == 10:
             break
+    """
+
+    # test customized dataset
+    from hetseq.data import BertNerDataset
+    cus_dataset = BertNerDataset(train_dataset, args)
+    print('len(cus_dataset)', len(cus_dataset))
+
+    data_loader = DataLoader(
+        cus_dataset,
+        batch_size=args.batch_size,
+        # sampler=train_sampler,
+        sampler=None,
+        collate_fn=args.data_collator,
+        drop_last=False,
+        # num_workers=8,
+        num_workers=0,
+    )
+
+    model = prepare_model(args)
+
+    for index, input in enumerate(data_loader):
+        if index == 0:
+            print('input.keys()', input.keys(), input.items())
+            print(model(**input))
+        print('input_ids shape', input['input_ids'].shape, 'labels shape', input['labels'].shape)
+        if index == 10:
+            break
+    """
+
 
 def prepare_tokenizer(args):
     config = BertConfig.from_json_file(args.config_file)
