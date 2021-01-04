@@ -14,7 +14,7 @@ from hetseq.data_collator import YD_DataCollatorForTokenClassification
 
 from transformers import (
     BertTokenizerFast,
-    # DataCollatorForTokenClassification,
+    DataCollatorForTokenClassification,
 )
 
 import torch
@@ -39,7 +39,8 @@ _NER_COLUMNS = ['input_ids', 'labels', 'token_type_ids', 'attention_mask']
 def main(args):
     dataset = prepare_dataset(args)
     tokenizer = prepare_tokenizer(args)
-    data_collator = YD_DataCollatorForTokenClassification(tokenizer)
+    # data_collator = YD_DataCollatorForTokenClassification(tokenizer)
+    data_collator = DataCollatorForTokenClassification(tokenizer)
 
     if 'test' in dataset:
         column_names = dataset["test"].column_names
@@ -135,7 +136,12 @@ def main(args):
         # print(input.keys())
         input = utils.move_to_cuda(input)
         predictions = model(**input)
+        if index == 0:
+            print('predictions', predictions)
         predictions = torch.argmax(predictions, axis=2).tolist()
+        if index == 0:
+            print('labels', labels)
+            print('predictions', predictions)
 
         true_predictions.extend([
             [label_list[p] for (p, l) in zip(prediction, label) if l != -100]
@@ -169,6 +175,11 @@ def prepare_dataset(args):
     else:
         raise ValueError('Evaluation must specify test_file!')
 
+    if args.train_file is not None:
+        data_files["train"] = args.train_file
+    if args.validation_file is not None:
+        data_files["validation"] = args.validation_file
+
     extension = args.extension_file
     print('extension', extension)
     print('data_files', data_files)
@@ -192,6 +203,16 @@ def prepare_model(args):
         model.load_state_dict(torch.load(args.hetseq_state_dict, map_location='cpu')['model'], strict=True)
 
     return model
+
+
+def get_label_list(labels):
+    unique_labels = set()
+    for label in labels:
+        unique_labels = unique_labels | set(label)
+    label_list = list(unique_labels)
+    label_list.sort()
+    return label_list
+
 
 def cli_main():
     parser = argparse.ArgumentParser(allow_abbrev=False)

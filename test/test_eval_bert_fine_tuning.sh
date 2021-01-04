@@ -13,7 +13,7 @@ DIST=/scratch365/yding4/hetseq
 CODE=/scratch365/yding4/hetseq/test/test_eval_bert_fine_tuning.py
 EXTENSION_FILE=/scratch365/yding4/EL_resource/preprocess/build_datasets_huggingface/ace2004.py
 
-HETSEQ_STATE_DICT=/scratch365/yding4/hetseq/CRC_RUN_FILE/run_hetseq_bert_tine_tuning_ner/bert_fine_tuning_ner/checkpoint_last.pt
+HETSEQ_STATE_DICT=/scratch365/yding4/hetseq/CRC_RUN_FILE/Train_bert_fine_tuning_ner/bert_from_reddit_to_aida_ner/bert_fine_tuning_ner/checkpoint1.pt
 DATA_DIR=/scratch365/yding4/EL_resource/data/processed/EL_CONLL_NER_stanza/
 TEST_FILE=ace2004.conll
 
