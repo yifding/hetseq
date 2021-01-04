@@ -3,11 +3,14 @@ import argparse
 
 from datasets import load_dataset, ClassLabel
 
-from hetseq.bert_modeling import (
+from transformers import (
     BertConfig,
     BertForPreTraining,
     BertForTokenClassification,
 )
+
+from hetseq import utils
+from hetseq.data_collator import YD_DataCollatorForTokenClassification
 
 from transformers import (
     BertTokenizerFast,
@@ -17,32 +20,33 @@ from transformers import (
 import torch
 from torch.utils.data.dataloader import DataLoader
 
-from hetseq.data_collator import YD_DataCollatorForTokenClassification
+from tqdm import tqdm
+from seqeval.metrics import accuracy_score, f1_score, precision_score, recall_score
+
+
+__DATE__ = '2020/1/3'
+__AUTHOR__ = 'Yifan_Ding'
+__E_MAIL = 'dyf0125@gmail.edu'
 
 _NER_COLUMNS = ['input_ids', 'labels', 'token_type_ids', 'attention_mask']
 
+# 1. load dataset, either from CONLL2003 or other entity linking datasets.
+# 2. load model from a trained one, load model architecture and state_dict from a trained one.
+# 3. predict loss, generate predicted label
+# 4. compare predicted label with ground truth label to obtain evaluation results.
+
 
 def main(args):
-    # 1. prepare dataset from customized dataset
     dataset = prepare_dataset(args)
-
-    # 2. prepare tokenizer from customized dictionary and build data_collator
     tokenizer = prepare_tokenizer(args)
-    # data_collator = DataCollatorForTokenClassification(tokenizer)
     data_collator = YD_DataCollatorForTokenClassification(tokenizer)
-    args.data_collator = data_collator
+    # data_collator = DataCollatorForTokenClassification(tokenizer)
 
-    if 'train' in dataset:
-        column_names = dataset["train"].column_names
-        features = dataset["train"].features
-    elif 'validation' in dataset:
-        column_names = dataset["validation"].column_names
-        features = dataset["validation"].features
-    elif 'test' in dataset:
+    if 'test' in dataset:
         column_names = dataset["test"].column_names
         features = dataset["test"].features
     else:
-        raise ValueError('dataset must contain "train"/"validation"/"test"')
+        raise ValueError('Evaluation must specify test_file!')
 
     text_column_name = "tokens" if "tokens" in column_names else column_names[0]
     label_column_name = ('ner_tags' if 'ner_tags' in column_names else column_names[1])
@@ -52,17 +56,12 @@ def main(args):
         # No need to convert the labels since they are already ints.
         label_to_id = {i: i for i in range(len(label_list))}
     else:
-        if 'train' in label_column_name:
-            label_list = get_label_list(datasets["train"][label_column_name])
-        elif 'validation' in label_column_name:
-            label_list = get_label_list(datasets["validation"][label_column_name])
-        elif 'test' in label_column_name:
+        if 'test' in label_column_name:
             label_list = get_label_list(datasets["test"][label_column_name])
         else:
-            raise ValueError('dataset must contain "train"/"validation"/"test"')
+            raise ValueError('Evaluation must specify test_file!')
 
         label_to_id = {l: i for i, l in enumerate(label_list)}
-
     args.num_labels = len(label_list)
 
     # Tokenize all texts and align the labels with them.
@@ -110,19 +109,14 @@ def main(args):
         load_from_cache_file=False,
     )
 
-    # print(tokenized_datasets['train'])
-    # print(tokenized_datasets['train'][0])
-    train_dataset = tokenized_datasets['train']
-
+    test_dataset = tokenized_datasets['test']
     # **YD** core code to keep only usefule parameters for model
-    train_dataset.set_format(type=train_dataset.format["type"], columns=_NER_COLUMNS)
-
+    test_dataset.set_format(type=test_dataset.format["type"], columns=_NER_COLUMNS)
 
     # **YD** dataloader
     data_loader = DataLoader(
-        train_dataset,
+        test_dataset,
         batch_size=args.batch_size,
-        #sampler=train_sampler,
         sampler=None,
         collate_fn=data_collator,
         drop_last=False,
@@ -130,45 +124,69 @@ def main(args):
         num_workers=0,
     )
 
-    # 3. prepare bert-model loading pre-trained checkpoint
-    # **YD** num_class is defined by datasets, define model after datasets, in hetseq may require pass extra parameters
     model = prepare_model(args)
+    model.cuda()
 
-    for index, input in enumerate(data_loader):
+    true_predictions = []
+    true_labels = []
+
+    for index, input in tqdm(enumerate(data_loader)):
+        labels, input['labels'] = input['labels'].tolist(), None
+
+        # print(input.keys())
+        input = utils.move_to_cuda(input)
+        predictions = model(**input)
         if index == 0:
-            print('input.keys()', input.keys(), input.items())
-            print(model(**input))
-        print('input_ids shape', input['input_ids'].shape, 'labels shape', input['labels'].shape)
-        if index == 10:
-            break
-    """
+            print('predictions', predictions)
+        predictions = predictions['logits']
+        predictions = torch.argmax(predictions, axis=2).tolist()
+        if index == 0:
+            print('labels', labels)
+            print('predictions', predictions)
 
-    # test customized dataset
-    from hetseq.data import BertNerDataset
-    cus_dataset = BertNerDataset(train_dataset, args)
-    print('len(cus_dataset)', len(cus_dataset))
+        true_predictions.extend([
+            [label_list[p] for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(predictions, labels)
+        ])
 
-    data_loader = DataLoader(
-        cus_dataset,
-        batch_size=args.batch_size,
-        # sampler=train_sampler,
-        sampler=None,
-        collate_fn=args.data_collator,
-        drop_last=False,
-        # num_workers=8,
-        num_workers=0,
+        true_labels.extend([
+            [label_list[l] for (p, l) in zip(prediction, label) if l != -100]
+            for prediction, label in zip(predictions, labels)
+        ])
+
+    #true_predictions = [true_prediction for true_prediction in true_predictions if true_prediction != []]
+    #true_labels = [true_label for true_label in true_labels if true_label != []]
+
+    print('true_predictions', true_predictions[0], true_predictions[-1])
+    print('true_labels', true_labels[0], true_labels[-1])
+
+    print(
+        {
+        "accuracy_score": accuracy_score(true_labels, true_predictions),
+        "precision": precision_score(true_labels, true_predictions),
+        "recall": recall_score(true_labels, true_predictions),
+        "f1": f1_score(true_labels, true_predictions),
+        }
     )
 
-    model = prepare_model(args)
 
-    for index, input in enumerate(data_loader):
-        if index == 0:
-            print('input.keys()', input.keys(), input.items())
-            print(model(**input))
-        print('input_ids shape', input['input_ids'].shape, 'labels shape', input['labels'].shape)
-        if index == 10:
-            break
-    """
+def prepare_dataset(args):
+    data_files = {}
+    if args.test_file is not None:
+        data_files["test"] = args.test_file
+    else:
+        raise ValueError('Evaluation must specify test_file!')
+
+    if args.train_file is not None:
+        data_files["train"] = args.train_file
+    if args.validation_file is not None:
+        data_files["validation"] = args.validation_file
+
+    extension = args.extension_file
+    print('extension', extension)
+    print('data_files', data_files)
+    dataset = load_dataset(extension, data_files=data_files)
+    return dataset
 
 
 def prepare_tokenizer(args):
@@ -181,31 +199,24 @@ def prepare_tokenizer(args):
 
 def prepare_model(args):
     config = BertConfig.from_json_file(args.config_file)
-    model = BertForTokenClassification(config, args.num_labels)
+    config.num_labels = args.num_labels
+    model = BertForTokenClassification(config)
     if args.hetseq_state_dict != '':
         # load hetseq state_dictionary
-        model.load_state_dict(torch.load(args.hetseq_state_dict, map_location='cpu')['model'], strict=False)
-    elif args.transformers_state_dict != '':
-        model.load_state_dict(torch.load(args.transformers_state_dict, map_location='cpu'), strict=False)
+        model.load_state_dict(torch.load(args.hetseq_state_dict, map_location='cpu')['model'], strict=True)
 
+    elif args.transformers_state_dict != '':
+        model.load_state_dict(torch.load(args.transformers_state_dict, map_location='cpu'), strict=True)
     return model
 
 
-def prepare_dataset(args):
-    data_files = {}
-    if args.train_file is not None:
-        data_files["train"] = args.train_file
-    if args.validation_file is not None:
-        data_files["validation"] = args.validation_file
-    if args.test_file is not None:
-        data_files["test"] = args.test_file
-
-    extension = args.extension_file
-    print('extension', extension)
-    print('data_files', data_files)
-    dataset = load_dataset(extension, data_files=data_files)
-
-    return dataset
+def get_label_list(labels):
+    unique_labels = set()
+    for label in labels:
+        unique_labels = unique_labels | set(label)
+    label_list = list(unique_labels)
+    label_list.sort()
+    return label_list
 
 
 def cli_main():

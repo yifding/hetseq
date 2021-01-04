@@ -28,7 +28,7 @@ def get_training_parser(task='bert', optimizer='adam', lr_scheduler='PolynomialD
 def add_dataset_args(parser, train=False, gen=False,  task='bert'):
     group = parser.add_argument_group('Dataset and data loading')
 
-    group.add_argument('--num-workers', default=0, type=int, metavar='N',
+    group.add_argument('--num-workers', default=-1, type=int, metavar='N',
                        help='how many subprocesses to use for data loading')
     group.add_argument('--max-tokens', type=int, metavar='N',
                        help='maximum number of tokens in a batch')
@@ -92,7 +92,10 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
                                help='max number of tokens in a sentence')
 
             group.add_argument('--hetseq_state_dict', type=str, default=None,
-                               help='PATH to dictionary')
+                               help='PATH to load hetseq model state dictionary')
+            group.add_argument('--transformers_state_dict', type=str, default=None,
+                               help='PATH to load transformers official model state dictionary')
+
             group.add_argument('--train_file', type=str, default=None,
                                help='PATH to training file')
             group.add_argument('--validation_file', type=str, default=None,
@@ -101,8 +104,12 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
                                help='PATH to test file')
             group.add_argument('--extension_file', type=str, default=None,
                                help='PATH to extension file to build NER datasets')
+
+            """ **YD** obtain by reading the NER data
             group.add_argument('--num_label', type=int, default=3,
                                help='Number of labels in NER output')
+            """
+
             group.add_argument('--load_state_dict_strict', type=eval,
                                default="False",
                                help='whether strictly load state_dict')
@@ -211,7 +218,6 @@ def add_optimization_args(parser, optimizer='adam', lr_scheduler='PolynomialDeca
 
 
     else:
-        print(optimizer, 'adadelta')
         raise ValueError('unsupported optimizer: {}'.format(optimizer))
 
     if lr_scheduler == 'PolynomialDecayScheduler':

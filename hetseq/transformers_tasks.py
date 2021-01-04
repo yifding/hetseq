@@ -225,7 +225,7 @@ class LanguageModelingTask(Task):
 
     def build_model(self, args):
         if args.task == 'bert':
-            from hetseq.bert_modeling import BertForPreTraining, BertConfig
+            from bert_modeling import BertForPreTraining, BertConfig
             config = BertConfig.from_json_file(args.config_file)
             model = BertForPreTraining(config)
 
@@ -395,12 +395,12 @@ class BertForTokenClassificationTask(Task):
     def build_model(self, args):
         if args.task == 'BertForTokenClassification':
             # obtain num_label from dataset before assign model
-            from hetseq.bert_modeling import BertForTokenClassification, BertConfig
+            from transformers import BertForTokenClassification, BertConfig
             config = BertConfig.from_json_file(args.config_file)
             # **YD** mention detection, num_label is by default 3
             assert hasattr(args, 'num_labels')
-            num_labels = args.num_labels
-            model = BertForTokenClassification(config, num_labels)
+            config.num_labels = args.num_labels
+            model = BertForTokenClassification(config)
 
             # **YD** add load state_dict from pre-trained model
             # could make only master model to load from state_dict, not quite sure whether this works for single GPU
@@ -467,13 +467,14 @@ class BertForTokenClassificationTask(Task):
         """
         model.train()
 
-        loss = model(**sample)
+        loss = model(**sample)['loss']
         if ignore_grad:
             loss *= 0
         if sample is None or len(sample['labels']) == 0:
             sample_size = 0
         else:
-            sample_size = len(sample['labels'])
+            # sample_size = len(sample['labels'])
+            sample_size = 1
 
         nsentences = sample_size
 
