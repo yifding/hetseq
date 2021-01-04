@@ -19,7 +19,7 @@ class BertNerDataset(torch.utils.data.Dataset):
     def ordered_indices(self):
         """Return an ordered list of indices. Batches will be constructed based
         on this order."""
-        return np.arange(len(self))
+        return np.arange(len(self.dataset))
 
     def num_tokens(self, index: int):
         return len(self.dataset[index]['labels'])
