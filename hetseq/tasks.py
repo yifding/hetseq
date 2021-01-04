@@ -225,7 +225,7 @@ class LanguageModelingTask(Task):
 
     def build_model(self, args):
         if args.task == 'bert':
-            from bert_modeling import BertForPreTraining, BertConfig
+            from hetseq.bert_modeling import BertForPreTraining, BertConfig
             config = BertConfig.from_json_file(args.config_file)
             model = BertForPreTraining(config)
 
