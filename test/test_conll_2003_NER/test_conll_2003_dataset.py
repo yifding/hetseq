@@ -136,7 +136,8 @@ def main(args):
 
     for index, input in enumerate(data_loader):
         if index == 0:
-            print('input.keys()', input.keys(), input.items())
+            print('input.keys()', input.keys())
+            print('input.items()', input.items())
             print(model(**input))
         print('input_ids shape', input['input_ids'].shape, 'labels shape', input['labels'].shape)
         if index == 10:
