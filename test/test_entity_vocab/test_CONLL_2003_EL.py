@@ -25,6 +25,8 @@ _UNK_ENTITY_ID = 1
 _UNK_ENTITY_NAME = 'UNK_ENT'
 _EMPTY_ENTITY_ID = 0
 _EMPTY_ENTITY_NAME = 'EMPTY_ENT'
+_OUT_DICT_ENTITY_ID = -1
+_IGNORE_CLASSIFICATION_LABEL = -100
 NER_LABEL_DICT = {'B': 0, 'I':1, 'O':2}
 
 def main(args):
@@ -118,6 +120,15 @@ def main(args):
     ent_name_id = EntNameID(args)
 
     # Tokenize all texts and align the **NER_labels and Entity_labels** with them.
+    # **YD** only mention (GT label= 'B' or 'I') is considered to do entity disambiguation task.
+    # in training time, if certain entity in dictionary, it is labeled with correct entity id.
+    # if certain entity is not in dictionary, or certain mention has no corresponding entity,
+    # it is labelled with incorrect entity.
+
+    # in inference time, NER label together with ED label to do evaluation.
+    # if certain token labels with 'B' and has not unknown predicted entity, it is predicted with entity. The mention
+    # part is decided with the following 'I' label.
+    # otherwise, if it has unknown predicted entity, all 'B' and following 'I' becomes 'O' label.
     def tokenize_and_align_labels(examples, label_all_tokens=False):
         tokenized_inputs = tokenizer(
             examples[text_column_name],
@@ -150,14 +161,14 @@ def main(args):
                     current_entity_label = entity_label[label_index-1]
 
                     if label[label_index-1] == NER_LABEL_DICT['O']:
-                        current_entity_label = ent_name_id.unk_ent_thid
+                        current_entity_label = -100
                     else:
                         # print(label[label_index-1])
                         # print(label_to_id)
                         assert label[label_index-1] == NER_LABEL_DICT['B'] or label[label_index-1] == NER_LABEL_DICT['I']
 
                         if current_entity_label == _EMPTY_ENTITY_NAME:
-                            current_entity_label = ent_name_id.unk_ent_thid
+                            current_entity_label = -100
                         else:
                             tmp_label = ent_name_id.get_thid(
                                 ent_name_id.get_ent_wikiid_from_name(current_entity_label, True)
@@ -165,7 +176,7 @@ def main(args):
                             if tmp_label != ent_name_id.unk_ent_thid:
                                 current_entity_label = tmp_label
                             else:
-                                current_entity_label = -1
+                                current_entity_label = _OUT_DICT_ENTITY_ID
 
                     entity_label_ids.append(current_entity_label)
                 # For special tokens, we set the label to -100 so it's automatically ignored in the loss function.
