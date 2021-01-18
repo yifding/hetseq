@@ -16,7 +16,7 @@ _IGNORE_CLASSIFICATION_LABEL = -100
 
 class BertForELClassification(BertPreTrainedModel):
     def __init__(self, config, args):
-        super(BertForTokenClassification, self).__init__(config)
+        super(BertForELClassification, self).__init__(config)
         self.args = args
         self.num_labels = args.num_labels
         self.bert = BertModel(config)
@@ -35,7 +35,7 @@ class BertForELClassification(BertPreTrainedModel):
         assert self.entity_emb.weight.shape[0] == self.num_entity_labels
         assert self.entity_emb.weight.shape[1] == self.dim_entity_emb
 
-        self.activate = nn.Tanh
+        self.activate = torch.tanh
 
     def forward(self, input_ids, token_type_ids=None, attention_mask=None,
                 labels=None, entity_labels=None, checkpoint_activations=False):
@@ -77,7 +77,7 @@ class BertForELClassification(BertPreTrainedModel):
                     torch.tensor(entity_loss_fct.ignore_index).type_as(entity_labels)
                 )
                 entity_loss = entity_loss_fct(entity_active_logits, entity_active_labels)
-
+                print('loss', loss, 'entity_loss', entity_loss)
                 loss = loss + entity_loss
 
             else:

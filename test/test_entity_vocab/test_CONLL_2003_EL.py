@@ -8,6 +8,7 @@ from hetseq.bert_modeling import (
     BertForPreTraining,
     BertForTokenClassification,
 )
+from hetseq.BertForEL import BertForELClassification
 
 from transformers import (
     BertTokenizerFast,
@@ -228,13 +229,17 @@ def main(args):
 
     # 3. prepare bert-model loading pre-trained checkpoint
     # **YD** num_class is defined by datasets, define model after datasets, in hetseq may require pass extra parameters
-    # model = prepare_model(args)
+    # prepare entity embedding and dimension to args.
+    args.EntityEmbedding = torch.load(args.ent_vecs_filename, map_location='cpu')
+    args.num_entity_labels = args.EntityEmbedding.shape[0]
+    args.dim_entity_emb = args.EntityEmbedding.shape[1]
+    model = prepare_model(args)
 
     for index, input in enumerate(data_loader):
         if index == 0:
             print('input.keys()', input.keys(), input.items())
-            # print(model(**input))
-        print('input_ids shape', input['input_ids'].shape, 'labels shape', input['labels'].shape)
+        print(model(**input))
+        # print('input_ids shape', input['input_ids'].shape, 'labels shape', input['labels'].shape)
         if index == 10:
             break
     """
@@ -273,7 +278,7 @@ def prepare_tokenizer(args):
 
 def prepare_model(args):
     config = BertConfig.from_json_file(args.config_file)
-    model = BertForTokenClassification(config, args.num_labels)
+    model = BertForELClassification(config, args)
     if args.hetseq_state_dict != '':
         # load hetseq state_dictionary
         model.load_state_dict(torch.load(args.hetseq_state_dict, map_location='cpu')['model'], strict=False)
