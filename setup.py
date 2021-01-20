@@ -1,6 +1,9 @@
 import sys
 from setuptools import setup, find_packages, Extension
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 if sys.platform == 'darwin':
     extra_compile_args = ['-stdlib=libc++', '-O3']
 else:
@@ -38,6 +41,7 @@ setup(
     name='hetseq',
     version='1.0.0',
     description='Distributed GPU Training on Heterogeneous Infrastructureg',
+    long_description=long_description,
     setup_requires=[
         'cython',
         'numpy',
