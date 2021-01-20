@@ -8,7 +8,7 @@ from hetseq.bert_modeling import (
     BertForPreTraining,
     BertForTokenClassification,
 )
-from hetseq.BertForEL import BertForELClassification
+from hetseq.model.bert_for_EL_classification import BertForELClassification
 
 from transformers import (
     BertTokenizerFast,
