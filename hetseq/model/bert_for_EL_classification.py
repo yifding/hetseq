@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import (
-    NLLLoss,
+    CosineEmbeddingLoss,
     CrossEntropyLoss,
 )
 
@@ -13,6 +13,7 @@ from hetseq.bert_modeling import (
 
 _OUT_DICT_ENTITY_ID = -1
 _IGNORE_CLASSIFICATION_LABEL = -100
+NER_LABEL_DICT = {'B': 0, 'I':1, 'O':2}
 
 # **YD** tag each token with its cor- rect mention indicator and link each mention with its correct entity ID.
 
@@ -20,6 +21,7 @@ _IGNORE_CLASSIFICATION_LABEL = -100
 class BertForELClassification(BertPreTrainedModel):
     def __init__(self, config, args):
         super(BertForELClassification, self).__init__(config)
+        self.config = config
         self.args = args
         self.num_labels = args.num_labels
         self.bert = BertModel(config)
@@ -51,13 +53,14 @@ class BertForELClassification(BertPreTrainedModel):
         entity_logits = self.entity_classifier(sequence_output)
         # **YD** may not require activation function
         entity_logits = self.activate(entity_logits)
-        entity_logits = F.normalize(entity_logits, 2, 2)
-        entity_logits = torch.matmul(entity_logits, self.entity_emb.weight.T)
-        entity_logits = torch.log(entity_logits)
+
+        # entity_logits = F.normalize(entity_logits, 2, 2)
+        # entity_logits = torch.matmul(entity_logits, self.entity_emb.weight.T)
+        # entity_logits = torch.log(entity_logits)
 
         if labels is not None:
             loss_fct = CrossEntropyLoss()
-            entity_loss_fct = NLLLoss()
+            entity_loss_fct = CosineEmbeddingLoss()
             # Only keep active parts of the loss
             if attention_mask is not None:
                 '''
@@ -73,6 +76,7 @@ class BertForELClassification(BertPreTrainedModel):
                 )
                 loss = loss_fct(active_logits, active_labels)
 
+                '''
                 entity_labels[entity_labels == _OUT_DICT_ENTITY_ID] = _IGNORE_CLASSIFICATION_LABEL
                 assert entity_labels.requires_grad is False
                 entity_active_logits = entity_logits.view(-1, self.num_entity_labels)
@@ -81,8 +85,20 @@ class BertForELClassification(BertPreTrainedModel):
                     torch.tensor(entity_loss_fct.ignore_index).type_as(entity_labels)
                 )
                 entity_loss = entity_loss_fct(entity_active_logits, entity_active_labels)
-                print('loss', loss, 'entity_loss', entity_loss)
-                loss = loss + entity_loss
+                '''
+                if entity_labels is not None:
+                    # entity_active_loss = (labels.view(-1) == NER_LABEL_DICT['B']) | active_loss
+                    entity_active_loss = (entity_labels.view(-1) > 0)
+                    entity_active_logits = entity_logits.view(-1, self.dim_entity_emb)[entity_active_loss]
+                    entity_active_labels = entity_labels.view(-1)[entity_active_loss]
+                    entity_loss = entity_loss_fct(
+                        entity_active_logits,
+                        self.entity_emb.weight[entity_active_labels],
+                        torch.tensor(1).type_as(entity_labels)
+                    )
+
+                    print('loss', loss, 'entity_loss', entity_loss)
+                    loss = loss + entity_loss
 
             else:
                 # loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
