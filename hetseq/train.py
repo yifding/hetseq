@@ -1,7 +1,3 @@
-__AUTHOR__ = "Yifan Ding"
-__E_MAIL__ = "dyf0125@gmail.com"
-__DATE__ = "8/9/2020"
-
 import sys
 import math
 import random
@@ -53,6 +49,8 @@ def main(args, init_distributed=False):
         task = tasks.MNISTTask.setup_task(args)
     elif args.task == 'BertForTokenClassification':
         task = tasks.BertForTokenClassificationTask.setup_task(args)
+    elif args.task == 'BertForELClassification':
+        task = tasks.BertForELClassificationTask.setup_task(args)
     assert task != None
 
     # Load valid dataset (we load training data below, based on the latest checkpoint)
@@ -205,7 +203,7 @@ def distributed_main(i, args, start_rank=0):
 def cli_main():
     task_parser = argparse.ArgumentParser(allow_abbrev=False)
     task_parser.add_argument('--task', type=str,
-                        default='bert', choices=['bert', 'mnist', 'BertForTokenClassification'])
+                        default='bert', choices=['bert', 'mnist', 'BertForELClassification', 'BertForTokenClassification'])
     task_parser.add_argument('--optimizer', type=str,
                              default='adam', choices=['adam', 'adadelta'])
     task_parser.add_argument('--lr-scheduler', type=str,
