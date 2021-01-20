@@ -1,7 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn import CrossEntropyLoss
+from torch.nn import (
+    NLLLoss,
+    CrossEntropyLoss,
+)
 
 from hetseq.bert_modeling import (
     BertPreTrainedModel,
@@ -50,10 +53,11 @@ class BertForELClassification(BertPreTrainedModel):
         entity_logits = self.activate(entity_logits)
         entity_logits = F.normalize(entity_logits, 2, 2)
         entity_logits = torch.matmul(entity_logits, self.entity_emb.weight.T)
+        entity_logits = torch.log(entity_logits)
 
         if labels is not None:
             loss_fct = CrossEntropyLoss()
-            entity_loss_fct = CrossEntropyLoss()
+            entity_loss_fct = NLLLoss()
             # Only keep active parts of the loss
             if attention_mask is not None:
                 '''
