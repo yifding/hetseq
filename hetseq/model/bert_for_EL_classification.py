@@ -74,7 +74,7 @@ class BertForELClassification(BertPreTrainedModel):
                 active_labels = torch.where(
                     active_loss, labels.view(-1), torch.tensor(loss_fct.ignore_index).type_as(labels)
                 )
-                loss = loss_fct(active_logits, active_labels)
+                ner_loss = loss_fct(active_logits, active_labels)
 
                 '''
                 entity_labels[entity_labels == _OUT_DICT_ENTITY_ID] = _IGNORE_CLASSIFICATION_LABEL
@@ -86,20 +86,24 @@ class BertForELClassification(BertPreTrainedModel):
                 )
                 entity_loss = entity_loss_fct(entity_active_logits, entity_active_labels)
                 '''
-                if entity_labels is not None:
-                    # entity_active_loss = (labels.view(-1) == NER_LABEL_DICT['B']) | active_loss
-                    entity_active_loss = (entity_labels.view(-1) > 0)
-                    entity_active_logits = entity_logits.view(-1, self.dim_entity_emb)[entity_active_loss]
-                    entity_active_labels = entity_labels.view(-1)[entity_active_loss]
-                    entity_loss = entity_loss_fct(
-                        entity_active_logits,
-                        self.entity_emb.weight[entity_active_labels],
-                        torch.tensor(1).type_as(entity_labels)
-                    )
 
-                    print('loss', loss, 'entity_loss', entity_loss)
-                    loss = loss + entity_loss
+                # entity_active_loss = (labels.view(-1) == NER_LABEL_DICT['B']) | active_loss
+                entity_active_loss = (entity_labels.view(-1) > 0)
+                entity_active_logits = entity_logits.view(-1, self.dim_entity_emb)[entity_active_loss]
+                entity_active_labels = entity_labels.view(-1)[entity_active_loss]
 
+                entity_loss = entity_loss_fct(
+                    entity_active_logits,
+                    self.entity_emb.weight[entity_active_labels],
+                    torch.tensor(1).type_as(entity_labels)
+                )
+
+                print('ner_loss', ner_loss, 'entity_loss', entity_loss)
+                if torch.isnan(entity_loss):
+                    loss = ner_loss
+                else:
+                    loss = ner_loss + entity_loss
+                assert not torch.isnan(loss)
             else:
                 # loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
                 raise ValueError("mask has to not None ")
