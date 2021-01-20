@@ -151,9 +151,10 @@ class BertForELClassificationTask(Task):
                             assert label[label_index - 1] == NER_LABEL_DICT['B'] or label[label_index - 1] == \
                                    NER_LABEL_DICT['I']
 
-                            if current_entity_label == _EMPTY_ENTITY_NAME:
+                            if current_entity_label == _EMPTY_ENTITY_NAME or label[label_index - 1] == NER_LABEL_DICT['I']:
                                 current_entity_label = -100
                             else:
+                                assert label[label_index - 1] == NER_LABEL_DICT['B']
                                 tmp_label = ent_name_id.get_thid(
                                     ent_name_id.get_ent_wikiid_from_name(current_entity_label, True)
                                 )
