@@ -18,6 +18,18 @@ NER_LABEL_DICT = {'B': 0, 'I':1, 'O':2}
 # **YD** tag each token with its cor- rect mention indicator and link each mention with its correct entity ID.
 
 
+# https://stackoverflow.com/questions/50411191/how-to-compute-the-cosine-similarity-in-pytorch-for-all-rows-in-a-matrix-with-re
+def sim_matrix(a, b, eps=1e-8):
+    """
+    added eps for numerical stability
+    """
+    a_n, b_n = a.norm(dim=1)[:, None], b.norm(dim=1)[:, None]
+    a_norm = a / torch.max(a_n, eps * torch.ones_like(a_n))
+    b_norm = b / torch.max(b_n, eps * torch.ones_like(b_n))
+    sim_mt = torch.mm(a_norm, b_norm.transpose(0, 1))
+    return sim_mt
+
+
 class BertForELClassification(BertPreTrainedModel):
     def __init__(self, config, args):
         super(BertForELClassification, self).__init__(config)
@@ -110,4 +122,23 @@ class BertForELClassification(BertPreTrainedModel):
 
             return loss
         else:
+            # **YD** you want to obtain the cosine similarity scores between tokens' hidden embeddings with the
+            # entity embeddings within the given entity dictionary.
+
+            # before, entity_logts.shape = [batch_size(=8 by default), num_tokens, entity_embed_length(=300 by deep-ed)]
+            # print(entity_logits.shape[0], entity_logits.shape[1], entity_logits.shape[2])
+            # assert entity_logits.shape[0] == self.args.batch_size
+            assert entity_logits.shape[2] == self.dim_entity_emb
+
+            """
+            # **YD** two for loops are slow, may improve to vectorization
+            re_logits = torch.zeros(entity_logits.shape[0], entity_logits.shape[1], self.num_entity_labels)
+            for i in range(entity_logits.shape[0]):
+                for j in range(entity_logits.shape[1]):
+                    re_logits[i][j] = F.cosine_similarity(entity_logits[i][j].unsqueeze(0), self.entity_emb.weight)
+            """
+
+            re_logits = sim_matrix(entity_logits.view(-1, self.dim_entity_emb), self.entity_emb.weight)
+            entity_logits = re_logits.view(entity_logits.shape[0], entity_logits.shape[1], self.num_entity_labels)
+
             return logits, entity_logits
