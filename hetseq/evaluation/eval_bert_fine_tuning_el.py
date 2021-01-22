@@ -24,7 +24,13 @@ import torch
 from torch.utils.data.dataloader import DataLoader
 
 from tqdm import tqdm
-from seqeval.metrics import accuracy_score, f1_score, precision_score, recall_score
+from seqeval.metrics import (
+    accuracy_score,
+    f1_score,
+    precision_score,
+    recall_score,
+    classification_report,
+)
 
 _EL_COLUMNS = ['input_ids', 'labels', 'token_type_ids', 'attention_mask', 'entity_labels']
 NER_LABEL_DICT = {'B': 0, 'I': 1, 'O': 2}
@@ -39,6 +45,54 @@ _IGNORE_CLASSIFICATION_LABEL = -100
 # 2. load model from a trained one, load model architecture and state_dict from a trained one.
 # 3. predict loss, generate predicted label
 # 4. compare predicted label with ground truth label to obtain evaluation results.
+
+def EL_GT_label():
+    # special tokens or (second and after subwords), do not consider this token
+    pre_el_labels = []
+    gt_el_labels = []
+
+    cur_entity = 'O'
+    pre_cur_entity = 'O'
+    if GT_NER_label == -100:
+        pass
+
+    else:
+        if GT_NER_label == 'B':
+            # a mention with no corresponding entity in the GT labeling.
+            if GT_EL_label == 'UNKNOW':
+                gt_el_labels.append('O')
+                cur_entity = 'O'
+            else:
+                # can be in dictionary entity, with positive number
+                # or out-dictionary entity, with -1
+                cur_entity = 'B' + str(GT_EL_label)
+                gt_el_labels.append(cur_entity)
+
+        elif GT_NER_label == 'I':
+            gt_el_labels.append(cur_entity)
+
+        elif GT_NER_label == 'O':
+            gt_el_labels.append('O')
+            cur_entity = 'O'
+        else:
+            raise ValueError('Unseen NER label' + GT_NER_label)
+
+        if PRE_NER_label == 'B':
+            if PRE_NER_label == 'UNKNOW':
+                gt_el_labels.append('O')
+                pre_cur_entity = 'O'
+            else:
+                pre_cur_entity = 'B' + str(PRE_EL_label)
+                pre_el_labels.append(pre_cur_entity)
+
+        elif PRE_NER_label == 'I':
+            pre_el_labels.append(pre_cur_entity)
+
+        elif PRE_NER_label == 'O':
+            pre_el_labels.append('O')
+            pre_cur_entity = 'O'
+        else:
+            raise ValueError('Unseen NER label' + PRE_NER_label)
 
 
 def main(args):
@@ -202,6 +256,9 @@ def main(args):
     el_predictions = []
     el_labels = []
 
+    EL_predictions = []
+    EL_labels = []
+
     for index, input in tqdm(enumerate(data_loader)):
         labels, input['labels'] = input['labels'].tolist(), None
         entity_labels = input['entity_labels'].tolist()
@@ -215,11 +272,66 @@ def main(args):
 
         #print('entity_predictions', entity_predictions.shape, 'entity_labels', entity_labels.shape)
 
-        '''
-        if index == 0:
-            print('labels', labels)
-            print('predictions', predictions)
-        '''
+        # **YD** close the gap NOW!!!
+        assert len(labels) == len(entity_labels) == len(predictions) == len(entity_predictions)
+        for label, entity_label, prediction, entity_prediction in zip(labels, entity_labels, predictions, entity_predictions):
+            assert len(label) == len(entity_label) == len(prediction) == len(entity_prediction)
+            cur_entity = 'O'
+            pre_cur_entity = 'O'
+            gt_el_labels = []
+            pre_el_labels = []
+
+            for l, e_l, p, e_p in zip(label, entity_label, prediction, entity_prediction):
+                if l == -100:
+                    pass
+                else:
+                    if label_list[l] == 'B':
+                        # a mention with no corresponding entity in the GT labeling.
+                        if e_l <= 0:
+                            gt_el_labels.append('O')
+                            cur_entity = 'O'
+                        else:
+                            # can be in dictionary entity, with positive number
+                            # or out-dictionary entity, with -1
+                            assert e_l > 0
+                            cur_entity = str(e_l)
+                            gt_el_labels.append('B-' + cur_entity)
+
+                    elif label_list[l] == 'I':
+                        if cur_entity == 'O':
+                            gt_el_labels.append('O')
+                        else:
+                            gt_el_labels.append('I-' + cur_entity)
+
+                    elif label_list[l] == 'O':
+                        gt_el_labels.append('O')
+                        cur_entity = 'O'
+                    else:
+                        raise ValueError('Unseen NER label' + label_list[l])
+
+                    if label_list[p] == 'B':
+                        if e_p <= 0:
+                            pre_el_labels.append('O')
+                            pre_cur_entity = 'O'
+                        else:
+                            assert e_p > 0
+                            pre_cur_entity = str(e_p)
+                            pre_el_labels.append('B-' + pre_cur_entity)
+
+                    elif label_list[p] == 'I':
+                        if pre_cur_entity == 'O':
+                            pre_el_labels.append('O')
+                        else:
+                            pre_el_labels.append('I-' + pre_cur_entity)
+
+                    elif label_list[p] == 'O':
+                        pre_el_labels.append('O')
+                        pre_cur_entity = 'O'
+                    else:
+                        raise ValueError('Unseen NER label' + label_list[p])
+
+            EL_predictions.append(pre_el_labels)
+            EL_labels.append(gt_el_labels)
 
         ner_predictions.extend([
             [label_list[p] for (p, l) in zip(prediction, label) if l != -100]
@@ -241,12 +353,14 @@ def main(args):
             for entity_prediction, entity_label in zip(entity_predictions, entity_labels)
         ])
 
-
+    EL_predictions = [EL_prediction for EL_prediction in EL_predictions if EL_prediction != []]
+    EL_labels = [EL_label for EL_label in EL_labels if EL_label != []]
     ner_predictions = [ner_prediction for ner_prediction in ner_predictions if ner_prediction != []]
     ner_labels = [ner_label for ner_label in ner_labels if ner_label != []]
 
     print('ner_predictions', ner_predictions[0], ner_predictions[-1])
     print('ner_labels', ner_labels[0], ner_labels[-1])
+
 
     '''
     print('el_predictions', el_predictions[0], el_predictions[-1])
@@ -266,10 +380,20 @@ def main(args):
 
     print(
         {
-        "accuracy_score": accuracy_score(ner_labels, ner_predictions),
-        "precision": precision_score(ner_labels, ner_predictions),
-        "recall": recall_score(ner_labels, ner_predictions),
-        "f1": f1_score(ner_labels, ner_predictions),
+            "EL_accuracy_score": accuracy_score(EL_labels, EL_predictions),
+            "EL_precision": precision_score(EL_labels, EL_predictions),
+            "EL_recall": recall_score(EL_labels, EL_predictions),
+            "EL_f1": f1_score(EL_labels, EL_predictions),
+        }
+    )
+
+
+    print(
+        {
+            "accuracy_score": accuracy_score(ner_labels, ner_predictions),
+            "precision": precision_score(ner_labels, ner_predictions),
+            "recall": recall_score(ner_labels, ner_predictions),
+            "f1": f1_score(ner_labels, ner_predictions),
         }
     )
 
