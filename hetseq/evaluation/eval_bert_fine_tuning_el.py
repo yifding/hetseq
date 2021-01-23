@@ -343,6 +343,7 @@ def main(args):
             for prediction, label in zip(predictions, labels)
         ])
 
+        '''
         el_predictions.extend([
             [p for (p, l) in zip(entity_prediction, entity_label) if l != -100]
             for entity_prediction, entity_label in zip(entity_predictions, entity_labels)
@@ -352,6 +353,7 @@ def main(args):
             [l for (p, l) in zip(entity_prediction, entity_label) if l != -100]
             for entity_prediction, entity_label in zip(entity_predictions, entity_labels)
         ])
+        '''
 
     EL_predictions = [EL_prediction for EL_prediction in EL_predictions if EL_prediction != []]
     EL_labels = [EL_label for EL_label in EL_labels if EL_label != []]
