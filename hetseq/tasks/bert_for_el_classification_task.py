@@ -1,16 +1,19 @@
 import torch
 import datasets
 from datasets import ClassLabel
+
+import transformers
 from transformers import BertTokenizerFast
 
 from hetseq.tasks import Task
 from hetseq.data_collator import YD_DataCollatorForELClassification
-from hetseq.bert_modeling import BertConfig
-from hetseq.model import BertForELClassification
+
+# **YD** BertConfig, BertForELClassification and etc related to modeling should be import inside the task
+# model definition to avoid wrong import for the same names
+
+# from hetseq.bert_modeling import BertConfig
+# from hetseq.model import BertForELClassification
 from hetseq.data import BertELDataset
-
-
-from deep_ed_PyTorch.entities.ent_name2id_freq import EntNameID
 
 
 _EL_COLUMNS = ['input_ids', 'labels', 'token_type_ids', 'attention_mask', 'entity_labels']
@@ -95,6 +98,7 @@ class BertForELClassificationTask(Task):
 
         # **YD** preparing ent_name_id from deep_ed to
         # transform (entity name or entity wikiid) to thid (entity embedding lookup index)
+        from deep_ed_PyTorch.entities.ent_name2id_freq import EntNameID
         ent_name_id = EntNameID(args)
 
         # 4. tokenization
@@ -207,20 +211,22 @@ class BertForELClassificationTask(Task):
 
     def build_model(self, args):
         if args.task == 'BertForELClassification':
-            # obtain num_label from dataset before assign model
-            config = BertConfig.from_json_file(args.config_file)
             # **YD** mention detection, num_label is by default 3
             assert hasattr(args, 'num_labels')
             assert hasattr(args, 'num_entity_labels')
             assert hasattr(args, 'dim_entity_emb')
             assert hasattr(args, 'EntityEmbedding')
 
-            model = BertForELClassification(config, args)
-
+            model = None
             # **YD** add load state_dict from pre-trained model
             # could make only master model to load from state_dict, not quite sure whether this works for single GPU
             # if distributed_utils.is_master(args) and args.hetseq_state_dict is not None:
             if args.hetseq_state_dict is not None:
+                from hetseq.bert_modeling import BertConfig
+                from hetseq.model import BertForELClassification
+
+                config = BertConfig.from_json_file(args.config_file)
+                model = BertForELClassification(config, args)
                 state_dict = torch.load(args.hetseq_state_dict, map_location='cpu')['model']
                 if args.load_state_dict_strict:
                     model.load_state_dict(state_dict, strict=True)
@@ -228,11 +234,19 @@ class BertForELClassificationTask(Task):
                     model.load_state_dict(state_dict, strict=False)
 
             elif args.transformers_state_dict is not None:
+                from transformers import BertConfig
+                from hetseq.model import TransformersBertForELClassification
+                config = BertConfig.from_json_file(args.config_file)
+                model = TransformersBertForELClassification(config, args)
                 state_dict = torch.load(args.transformers_state_dict, map_location='cpu')
                 if args.load_state_dict_strict:
                     model.load_state_dict(state_dict, strict=True)
                 else:
                     model.load_state_dict(state_dict, strict=False)
+            else:
+                from hetseq.model import TransformersBertForELClassification
+                model = TransformersBertForELClassification.from_pretrained('bert-base-uncased')
+
         else:
             raise ValueError('Unknown fine_tunning task!')
         return model
