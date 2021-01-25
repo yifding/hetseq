@@ -419,7 +419,11 @@ def prepare_dataset(args):
 
 
 def prepare_tokenizer(args):
-    config = BertConfig.from_json_file(args.config_file)
+    if args.source == 'hetseq':
+        config = BertConfig.from_json_file(args.config_file)
+    else:
+        from transformers import BertConfig as TransformerBertConfig
+        config = TransformerBertConfig.from_json_file(args.config_file)
     # tokenizer = BertTokenizerFast(args.vocab_file, model_max_length=512)
     # print('config', type(config), config,)
     tokenizer = BertTokenizerFast(args.vocab_file, model_max_length=config.max_position_embeddings)
@@ -427,8 +431,17 @@ def prepare_tokenizer(args):
 
 
 def prepare_model(args):
-    config = BertConfig.from_json_file(args.config_file)
-    model = BertForELClassification(config, args)
+
+    if args.source == 'hetseq':
+        config = BertConfig.from_json_file(args.config_file)
+        model = BertForELClassification(config, args)
+    else:
+        from transformers import BertConfig as TransformerBertConfig
+        config = TransformerBertConfig.from_json_file(args.config_file)
+        assert args.source == 'transformers'
+        from hetseq.model import TransformersBertForELClassification
+        model = TransformersBertForELClassification(config, args)
+
     if args.hetseq_state_dict != '':
         # load hetseq state_dictionary
         model.load_state_dict(torch.load(args.hetseq_state_dict, map_location='cpu')['model'], strict=True)
@@ -530,6 +543,14 @@ def cli_main():
         default='test',
         choices=['train', 'validation', 'test'],
         help='testing parts of the dataset',
+    )
+
+    parser.add_argument(
+        '--source',
+        type=str,
+        default='hetseq',
+        choices=['hetseq', 'transformers'],
+        help='model source',
     )
 
     args = parser.parse_args()
