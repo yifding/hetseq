@@ -226,7 +226,15 @@ class BertForELClassificationTask(Task):
                 from hetseq.model import BertForELClassification
 
                 config = BertConfig.from_json_file(args.config_file)
-                model = BertForELClassification(config, args)
+
+                '''
+                config.num_labels = args.num_labels
+                config.num_entity_labels = args.num_entity_labels
+                config.dim_entity_emb = args.dim_entity_emb
+                config.EntityEmbedding = args.EntityEmbedding
+                '''
+
+                model = BertForELClassification(config)
                 state_dict = torch.load(args.hetseq_state_dict, map_location='cpu')['model']
                 if args.load_state_dict_strict:
                     model.load_state_dict(state_dict, strict=True)
@@ -237,6 +245,7 @@ class BertForELClassificationTask(Task):
                 from transformers import BertConfig
                 from hetseq.model import TransformersBertForELClassification
                 config = BertConfig.from_json_file(args.config_file)
+
                 model = TransformersBertForELClassification(config, args)
                 state_dict = torch.load(args.transformers_state_dict, map_location='cpu')
                 if args.load_state_dict_strict:
@@ -245,7 +254,12 @@ class BertForELClassificationTask(Task):
                     model.load_state_dict(state_dict, strict=False)
             else:
                 from hetseq.model import TransformersBertForELClassification
-                model = TransformersBertForELClassification.from_pretrained('bert-base-uncased')
+                from transformers import BertConfig
+                config = BertConfig.from_json_file(args.config_file)
+
+                model = TransformersBertForELClassification.from_pretrained(
+                    'bert-base-uncased', config=config, args=args
+                )
 
         else:
             raise ValueError('Unknown fine_tunning task!')
