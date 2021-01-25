@@ -29,6 +29,17 @@ def sim_matrix(a, b, eps=1e-8):
 
 # simple version of transformers' BERT implementation
 # https://github.com/huggingface/transformers/blob/master/src/transformers/models/bert/modeling_bert.py#L1633
+'''
+@add_start_docstrings(
+    """
+    Bert Model with a token classification head on top (a linear layer on top of the hidden-states output) e.g. for
+    Named-Entity-Recognition (NER) tasks.
+    """,
+    BERT_START_DOCSTRING,
+)
+'''
+
+
 class TransformersBertForTokenClassification(BertPreTrainedModel):
     def __init__(self, config, num_labels):
         super().__init__(config)
@@ -101,7 +112,7 @@ class TransformersBertForELClassification(BertPreTrainedModel):
         self.dim_entity_emb = args.dim_entity_emb
         self.entity_classifier = nn.Linear(config.hidden_size, self.dim_entity_emb)
 
-        self.apply(self.init_bert_weights)
+        self.init_weights()
 
         # **YD** TODO args.EntityEmbedding to be added.
         self.entity_emb = nn.Embedding.from_pretrained(args.EntityEmbedding, freeze=True)
@@ -111,11 +122,44 @@ class TransformersBertForELClassification(BertPreTrainedModel):
 
         self.activate = torch.tanh
 
+    '''
     def forward(self, input_ids, token_type_ids=None, attention_mask=None,
                 labels=None, entity_labels=None, checkpoint_activations=False):
 
         sequence_output, _ = self.bert(input_ids, token_type_ids, attention_mask, output_all_encoded_layers=False)
+        sequence_output = self.dropout(sequence_output
+    '''
+
+    def forward(
+        self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+        labels=None,
+        entity_labels=None,
+
+        position_ids=None,
+        head_mask=None,
+        inputs_embeds=None,
+        output_attentions=None,
+        output_hidden_states=None,
+        return_dict=None,
+    ):
+        outputs = self.bert(
+            input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids,
+            position_ids=position_ids,
+            head_mask=head_mask,
+            inputs_embeds=inputs_embeds,
+            output_attentions=output_attentions,
+            output_hidden_states=output_hidden_states,
+            return_dict=return_dict,
+        )
+
+        sequence_output = outputs[0]
         sequence_output = self.dropout(sequence_output)
+
         logits = self.classifier(sequence_output)
 
         # **YD** entity branch forward.
