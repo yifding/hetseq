@@ -55,7 +55,7 @@ class BertForELClassification(BertPreTrainedModel):
         self.activate = torch.tanh
 
     def forward(self, input_ids, token_type_ids=None, attention_mask=None,
-                labels=None, entity_labels=None, checkpoint_activations=False):
+                labels=None, entity_labels=None, checkpoint_activations=False, **kwargs,):
 
         sequence_output, _ = self.bert(input_ids, token_type_ids, attention_mask, output_all_encoded_layers=False)
         sequence_output = self.dropout(sequence_output)
