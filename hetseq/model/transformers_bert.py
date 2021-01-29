@@ -144,6 +144,8 @@ class TransformersBertForELClassification(BertPreTrainedModel):
         output_attentions=None,
         output_hidden_states=None,
         return_dict=None,
+
+        **kwargs,
     ):
         outputs = self.bert(
             input_ids,
