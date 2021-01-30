@@ -115,7 +115,7 @@ class TransformersBertForELClassification(BertPreTrainedModel):
         self.init_weights()
 
         # **YD** TODO args.EntityEmbedding to be added.
-        if args.ent_emb_no_freeze:
+        if hasattr(args, "ent_emb_no_freeze") and args.ent_emb_no_freeze:
             self.entity_emb = nn.Embedding.from_pretrained(args.EntityEmbedding, freeze=False)
         else:
             self.entity_emb = nn.Embedding.from_pretrained(args.EntityEmbedding, freeze=True)
