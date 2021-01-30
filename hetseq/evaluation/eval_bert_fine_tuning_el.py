@@ -249,6 +249,7 @@ def main(args):
 
     model = prepare_model(args)
     model.cuda()
+    model.eval()
 
     ner_predictions = []
     ner_labels = []
