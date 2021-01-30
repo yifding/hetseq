@@ -115,7 +115,11 @@ class TransformersBertForELClassification(BertPreTrainedModel):
         self.init_weights()
 
         # **YD** TODO args.EntityEmbedding to be added.
-        self.entity_emb = nn.Embedding.from_pretrained(args.EntityEmbedding, freeze=True)
+        if args.ent_emb_no_freeze:
+            self.entity_emb = nn.Embedding.from_pretrained(args.EntityEmbedding, freeze=False)
+        else:
+            self.entity_emb = nn.Embedding.from_pretrained(args.EntityEmbedding, freeze=True)
+            
         assert len(self.entity_emb.weight.shape) == 2
         assert self.entity_emb.weight.shape[0] == self.num_entity_labels
         assert self.entity_emb.weight.shape[1] == self.dim_entity_emb

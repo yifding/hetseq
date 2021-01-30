@@ -149,6 +149,10 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
                                default="False",
                                help='whether strictly load state_dict')
 
+            group.add_argument('--ent_emb_no_freeze',
+                               action='store_true',
+                               help='whether strictly load state_dict')
+
 
             # **YD** deep_ed arguments
             parser.add_argument(
