@@ -257,8 +257,9 @@ class BertForELClassificationTask(Task):
                 from transformers import BertConfig
                 config = BertConfig.from_json_file(args.config_file)
 
+                print('backbones', args.backbones)
                 model = TransformersBertForELClassification.from_pretrained(
-                    'bert-base-uncased', config=config, args=args
+                    args.backbones, config=config, args=args
                 )
 
         else:

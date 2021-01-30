@@ -153,7 +153,12 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
                                action='store_true',
                                help='whether strictly load state_dict')
 
-
+            group.add_argument('--backbones',
+                               type=str,
+                               default='bert-base-uncased',
+                               choices=['bert-base-uncased', 'bert-large-uncased'],
+                               help='backbone transformers model'
+                               )
             # **YD** deep_ed arguments
             parser.add_argument(
                 '--root_data_dir',
