@@ -104,6 +104,7 @@ def main(args):
         label_list = features[label_column_name].feature.names
         # No need to convert the labels since they are already ints.
         label_to_id = {i: i for i in range(len(label_list))}
+        print('label_list', label_list)
     else:
         if 'test' in label_column_name:
             label_list = get_label_list(datasets["test"][label_column_name])
@@ -206,7 +207,7 @@ def main(args):
         sampler=None,
         collate_fn=data_collator,
         drop_last=False,
-        num_workers=1,
+        num_workers=0,
     )
 
     # load entity embedding and set up shape parameters
@@ -216,6 +217,7 @@ def main(args):
 
     model = prepare_model(args)
     model.cuda()
+    model.eval()
 
     # **YD** starts with capital represents outputs variables
     NER_predictions = []
@@ -232,8 +234,8 @@ def main(args):
         input['labels'] = None
 
         # **YD** select the only batch and remove first and last special token
-        labels = labels[0][1:-1].tolist()
-        entity_labels = entity_labels[0][1:-1].tolist()
+        labels = labels[0].tolist()
+        entity_labels = entity_labels[0].tolist()
 
         # **YD** recover tokens string and valid mention mask.
         dataset_element = test_dataset[index]
@@ -248,9 +250,9 @@ def main(args):
         predictions, entity_predictions = model(**input)
 
         # **YD** select the only batch and remove first and last special token
-        predictions = torch.argmax(predictions, axis=2)[0][1:-1].tolist()
+        predictions = torch.argmax(predictions, axis=2)[0].tolist()
         # **YD** left the only tensor to perform look ups for valid entity candidates
-        entity_predictions = entity_predictions[0][1:-1]
+        entity_predictions = entity_predictions[0]
 
         # shrink the size follow the labels
         entity_predictions = [entity_prediction for entity_prediction, label in zip(entity_predictions, labels) if label != -100]
@@ -280,6 +282,13 @@ def main(args):
 
         NER_predictions.append(NER_prediction)
         EL_predictions.append(EL_prediction)
+
+        if index == 0:
+            print('NER_labels', NER_labels)
+            print('NER_predictions', NER_predictions)
+            print('tokens', tokens)
+
+
 
     print(
         {
@@ -477,7 +486,7 @@ def prepare_model(args):
         model = TransformersBertForELClassification(config, args)
 
     if args.hetseq_state_dict != '':
-        # load hetseq state_dictionary
+        print('load hetseq state_dictionary')
         model.load_state_dict(torch.load(args.hetseq_state_dict, map_location='cpu')['model'], strict=True)
 
     return model
@@ -596,7 +605,7 @@ def cli_main():
     parser.add_argument(
         '--num_cand',
         type=int,
-        default=100,
+        default=30,
         help='number of top candidate entities for a given mention (surface format)',
     )
 
