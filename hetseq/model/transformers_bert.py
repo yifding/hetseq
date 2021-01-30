@@ -119,7 +119,7 @@ class TransformersBertForELClassification(BertPreTrainedModel):
             self.entity_emb = nn.Embedding.from_pretrained(args.EntityEmbedding, freeze=False)
         else:
             self.entity_emb = nn.Embedding.from_pretrained(args.EntityEmbedding, freeze=True)
-            
+
         assert len(self.entity_emb.weight.shape) == 2
         assert self.entity_emb.weight.shape[0] == self.num_entity_labels
         assert self.entity_emb.weight.shape[1] == self.dim_entity_emb
