@@ -309,16 +309,16 @@ class TransformersBertForELClassificationCrossEntropy(BertPreTrainedModel):
                 active_loss = attention_mask.view(-1) == 1
                 active_logits = logits.view(-1, self.num_labels)
                 active_labels = torch.where(
-                    active_loss, labels.view(-1), torch.tensor(loss_fct.ignore_index).type_as(labels)
+                    active_loss, labels.view(-1), torch.tensor(self.loss_fct.ignore_index).type_as(labels)
                 )
-                ner_loss = loss_fct(active_logits, active_labels)
+                ner_loss = self.loss_fct(active_logits, active_labels)
 
                 # entity_active_loss = (labels.view(-1) == NER_LABEL_DICT['B']) | active_loss
                 entity_active_loss = (entity_labels.view(-1) > 0)
                 entity_active_logits = entity_logits.view(-1, self.num_entity_labels)[entity_active_loss]
                 entity_active_labels = entity_labels.view(-1)[entity_active_loss]
 
-                entity_loss = entity_loss_fct(
+                entity_loss = self.entity_loss_fct(
                     entity_active_logits,
                     entity_active_labels,
                 )
