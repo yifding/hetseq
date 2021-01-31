@@ -440,8 +440,16 @@ def prepare_model(args):
         from transformers import BertConfig as TransformerBertConfig
         config = TransformerBertConfig.from_json_file(args.config_file)
         assert args.source == 'transformers'
-        from hetseq.model import TransformersBertForELClassification
-        model = TransformersBertForELClassification(config, args)
+
+        model_class = getattr(args, 'model_class', 'TransformersBertForELClassification')
+        if model_class == 'TransformersBertForELClassification':
+            from hetseq.model import TransformersBertForELClassification
+            model = TransformersBertForELClassification(config, args)
+        elif model_class == 'TransformersBertForELClassificationCrossEntropy':
+            from hetseq.model import TransformersBertForELClassificationCrossEntropy
+            model = TransformersBertForELClassificationCrossEntropy(config,args)
+        else:
+            raise ValueError('Unknown model_class')
 
     if args.hetseq_state_dict != '':
         # load hetseq state_dictionary
@@ -552,6 +560,14 @@ def cli_main():
         default='hetseq',
         choices=['hetseq', 'transformers'],
         help='model source',
+    )
+
+    parser.add_argument(
+        '--model_class',
+        type=str,
+        default='TransformersBertForELClassification',
+        choices=['TransformersBertForELClassification', 'TransformersBertForELClassificationCrossEntropy'],
+        help='model_class source',
     )
 
     args = parser.parse_args()

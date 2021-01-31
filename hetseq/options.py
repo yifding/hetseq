@@ -162,6 +162,15 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
                                choices=['bert-base-uncased', 'bert-large-uncased'],
                                help='backbone transformers model'
                                )
+
+            group.add_argument('--model_class',
+                               type=str,
+                               default='TransformersBertForELClassification',
+                               choices=['TransformersBertForELClassification',
+                                        'TransformersBertForELClassificationCrossEntropy',
+                                        ],
+                               help='model_class source',
+                               )
             # **YD** deep_ed arguments
             parser.add_argument(
                 '--root_data_dir',

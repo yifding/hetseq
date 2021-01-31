@@ -253,14 +253,25 @@ class BertForELClassificationTask(Task):
                 else:
                     model.load_state_dict(state_dict, strict=False)
             else:
-                from hetseq.model import TransformersBertForELClassification
-                from transformers import BertConfig
-                config = BertConfig.from_json_file(args.config_file)
+                model_class = getattr(args, 'model_class', 'TransformersBertForELClassification')
+                if model_class == 'TransformersBertForELClassification':
+                    from hetseq.model import TransformersBertForELClassification
+                    from transformers import BertConfig
+                    config = BertConfig.from_json_file(args.config_file)
 
-                print('backbones', args.backbones)
-                model = TransformersBertForELClassification.from_pretrained(
-                    args.backbones, config=config, args=args
-                )
+                    print('backbones', args.backbones)
+                    model = TransformersBertForELClassification.from_pretrained(
+                        args.backbones, config=config, args=args,
+                    )
+                elif model_class == 'TransformersBertForELClassificationCrossEntropy':
+                    from hetseq.model import TransformersBertForELClassificationCrossEntropy
+                    from transformers import BertConfig
+                    config = BertConfig.from_json_file(args.config_file)
+
+                    print('backbones', args.backbones)
+                    model = TransformersBertForELClassificationCrossEntropy.from_pretrained(
+                        args.backbones, config=config, args=args,
+                    )
 
         else:
             raise ValueError('Unknown fine_tunning task!')
