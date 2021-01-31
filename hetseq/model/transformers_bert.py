@@ -251,6 +251,14 @@ class TransformersBertForELClassificationCrossEntropy(BertPreTrainedModel):
         assert self.entity_emb.weight.shape[1] == self.dim_entity_emb
 
         self.activate = torch.tanh
+        self.loss_fct = nn.CrossEntropyLoss()
+        if hasattr(args, 'entity_loss_type'):
+            if args.entity_loss_type == 'CrossEntropyLoss':
+                self.entity_loss_fct = nn.CrossEntropyLoss()
+            else:
+                raise ValueError('Unknown entity loss function')
+        else:
+            self.entity_loss_fct = nn.CrossEntropyLoss()
 
     def forward(
         self,
@@ -266,7 +274,6 @@ class TransformersBertForELClassificationCrossEntropy(BertPreTrainedModel):
         output_attentions=None,
         output_hidden_states=None,
         return_dict=None,
-
         **kwargs,
     ):
         outputs = self.bert(
@@ -290,14 +297,13 @@ class TransformersBertForELClassificationCrossEntropy(BertPreTrainedModel):
         entity_logits = self.entity_classifier(sequence_output)
         # **YD** may not require activation function
         entity_logits = self.activate(entity_logits)
-
-        # entity_logits = F.normalize(entity_logits, 2, 2)
-        # entity_logits = torch.matmul(entity_logits, self.entity_emb.weight.T)
-        # entity_logits = torch.log(entity_logits)
+        entity_logits = sim_matrix(
+            entity_logits.view(-1, self.dim_entity_emb),
+            self.entity_emb.weight,
+        ).view(entity_logits.shape[0], entity_logits.shape[1], self.num_entity_labels)
 
         if labels is not None:
-            loss_fct = nn.CrossEntropyLoss()
-            entity_loss_fct = nn.CosineEmbeddingLoss()
+
             # Only keep active parts of the loss
             if attention_mask is not None:
                 active_loss = attention_mask.view(-1) == 1
@@ -309,36 +315,24 @@ class TransformersBertForELClassificationCrossEntropy(BertPreTrainedModel):
 
                 # entity_active_loss = (labels.view(-1) == NER_LABEL_DICT['B']) | active_loss
                 entity_active_loss = (entity_labels.view(-1) > 0)
-                entity_active_logits = entity_logits.view(-1, self.dim_entity_emb)[entity_active_loss]
+                entity_active_logits = entity_logits.view(-1, self.num_entity_labels)[entity_active_loss]
                 entity_active_labels = entity_labels.view(-1)[entity_active_loss]
 
                 entity_loss = entity_loss_fct(
                     entity_active_logits,
-                    self.entity_emb.weight[entity_active_labels],
-                    torch.tensor(1).type_as(entity_labels)
+                    entity_active_labels,
                 )
 
                 print('ner_loss', ner_loss, 'entity_loss', entity_loss)
+                # there may be no entity in a sentence in the training process.
                 if torch.isnan(entity_loss):
                     loss = ner_loss
                 else:
                     loss = ner_loss + self.entity_loss_weight * entity_loss
                 assert not torch.isnan(loss)
             else:
-                # loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
                 raise ValueError("mask has to not None ")
 
             return loss
         else:
-            # **YD** you want to obtain the cosine similarity scores between tokens' hidden embeddings with the
-            # entity embeddings within the given entity dictionary.
-
-            # before, entity_logts.shape = [batch_size(=8 by default), num_tokens, entity_embed_length(=300 by deep-ed)]
-            # print(entity_logits.shape[0], entity_logits.shape[1], entity_logits.shape[2])
-            # assert entity_logits.shape[0] == self.args.batch_size
-            assert entity_logits.shape[2] == self.dim_entity_emb
-
-            re_logits = sim_matrix(entity_logits.view(-1, self.dim_entity_emb), self.entity_emb.weight)
-            entity_logits = re_logits.view(entity_logits.shape[0], entity_logits.shape[1], self.num_entity_labels)
-
             return logits, entity_logits
