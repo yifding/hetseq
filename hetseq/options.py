@@ -153,6 +153,9 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
                                action='store_true',
                                help='whether strictly load state_dict')
 
+            group.add_argument('--entity_loss_weight', default=1, type=int, metavar='N',
+                               help='weight of entity loss function in the model')
+
             group.add_argument('--backbones',
                                type=str,
                                default='bert-base-uncased',
