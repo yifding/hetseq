@@ -3,6 +3,8 @@ from .transformers_bert import (
     TransformersBertForTokenClassification,
     TransformersBertForELClassification,
     TransformersBertForELClassificationCrossEntropy,
+    TransformersBertForNERSymmetry,
+    TransformersBertForELSymmetry,
 )
 
 __all__ = [
@@ -10,4 +12,6 @@ __all__ = [
     'TransformersBertForTokenClassification',
     'TransformersBertForELClassification',
     'TransformersBertForELClassificationCrossEntropy',
+    'TransformersBertForNERSymmetry',
+    'TransformersBertForELSymmetry',
 ]

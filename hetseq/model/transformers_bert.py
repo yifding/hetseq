@@ -336,3 +336,197 @@ class TransformersBertForELClassificationCrossEntropy(BertPreTrainedModel):
             return loss
         else:
             return logits, entity_logits
+
+
+class TransformersBertForNERSymmetry(BertPreTrainedModel):
+    def __init__(self, config, args):
+        super().__init__(config)
+        self.config = config
+        self.args = args
+        self.bert = BertModel(config)
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+
+        self.left_classifier = nn.Linear(config.hidden_size, 2)
+        self.right_classifier = nn.Linear(config.hidden_size, 2)
+
+        self.init_weights()
+
+        self.left_loss_fct = nn.CrossEntropyLoss()
+        self.right_loss_fct = nn.CrossEntropyLoss()
+
+    def forward(
+        self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+
+        entity_th_ids=None,
+        left_mention_masks=None,
+        right_mention_masks=None,
+        left_entity_masks=None,
+        right_entity_masks=None,
+
+        position_ids=None,
+        head_mask=None,
+        inputs_embeds=None,
+        output_attentions=None,
+        output_hidden_states=None,
+        return_dict=None,
+        **kwargs,
+    ):
+        outputs = self.bert(
+            input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids,
+            position_ids=position_ids,
+            head_mask=head_mask,
+            inputs_embeds=inputs_embeds,
+            output_attentions=output_attentions,
+            output_hidden_states=output_hidden_states,
+            return_dict=return_dict,
+        )
+
+        sequence_output = outputs[0]
+        sequence_output = self.dropout(sequence_output)
+
+        left_logits = self.left_classifier(sequence_output)
+        right_logits = self.right_classifier(sequence_output)
+
+        if entity_th_ids is not None:
+            assert attention_mask is not None
+
+            active_left_loss = (left_mention_masks == 1)
+            active_right_loss = (right_mention_masks == 1)
+
+            active_left_logits = left_logits.view(-1, 2)
+            active_right_logits = right_logits.view(-1, 2)
+
+            '''
+            active_left_labels = left_entity_masks.view(-1)[active_left_loss]
+            active_right_labels = right_entity_masks.view(-1)[active_right_loss]
+            '''
+            active_left_labels = torch.where(
+                active_left_loss, left_entity_masks.view(-1), torch.tensor(-100).type_as(left_entity_masks)
+            )
+            active_right_labels = torch.where(
+                active_right_loss, right_entity_masks.view(-1), torch.tensor(-100).type_as(right_entity_masks)
+            )
+
+            left_loss = self.left_loss_fct(active_left_logits, active_left_labels)
+            right_loss = self.right_loss_fct(active_right_logits, active_right_labels)
+
+            loss = left_loss + right_loss
+
+            return loss
+        else:
+            return left_logits, right_logits
+
+
+class TransformersBertForELSymmetry(BertPreTrainedModel):
+    def __init__(self, config, args):
+        super().__init__(config)
+        self.config = config
+        self.args = args
+        self.bert = BertModel(config)
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+
+        self.left_classifier = nn.Linear(config.hidden_size, 2)
+        self.right_classifier = nn.Linear(config.hidden_size, 2)
+
+        # **YD** support weight for entity linking loss.
+        self.entity_loss_weight = args.entity_loss_weight if hasattr(args, 'entity_loss_weight') else 1
+
+        self.num_entity_labels = args.num_entity_labels
+        self.dim_entity_emb = args.dim_entity_emb
+
+        # **YD** concatenate left and right hidden states to predict entity class
+        self.entity_classifier = nn.Linear(2 * config.hidden_size, self.dim_entity_emb)
+
+        self.init_weights()
+
+        # **YD** TODO args.EntityEmbedding to be added.
+        if hasattr(args, "ent_emb_no_freeze") and args.ent_emb_no_freeze:
+            self.entity_emb = nn.Embedding.from_pretrained(args.EntityEmbedding, freeze=False)
+        else:
+            self.entity_emb = nn.Embedding.from_pretrained(args.EntityEmbedding, freeze=True)
+
+        assert len(self.entity_emb.weight.shape) == 2
+        assert self.entity_emb.weight.shape[0] == self.num_entity_labels
+        assert self.entity_emb.weight.shape[1] == self.dim_entity_emb
+
+        self.activate = torch.tanh
+
+        self.left_loss_fct = nn.CrossEntropyLoss()
+        self.right_loss_fct = nn.CrossEntropyLoss()
+
+    def forward(
+        self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+
+        entity_th_ids=None,
+        left_mention_masks=None,
+        right_mention_masks=None,
+        left_entity_masks=None,
+        right_entity_masks=None,
+
+        position_ids=None,
+        head_mask=None,
+        inputs_embeds=None,
+        output_attentions=None,
+        output_hidden_states=None,
+        return_dict=None,
+        **kwargs,
+    ):
+        outputs = self.bert(
+            input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids,
+            position_ids=position_ids,
+            head_mask=head_mask,
+            inputs_embeds=inputs_embeds,
+            output_attentions=output_attentions,
+            output_hidden_states=output_hidden_states,
+            return_dict=return_dict,
+        )
+
+        sequence_output = outputs[0]
+        sequence_output = self.dropout(sequence_output)
+
+        left_logits = self.left_classifier(sequence_output)
+        right_logits = self.right_classifier(sequence_output)
+
+        # **YD** make simple ideas by classifying
+        entity_logits = self.entity_classifier(sequence_output)
+        entity_logits = self.activate(entity_logits)
+
+
+        if entity_th_ids is not None:
+            assert attention_mask is not None
+
+            active_left_loss = left_mention_masks >= 0
+            active_right_loss = right_mention_masks >= 0
+
+            active_left_logits = left_logits.view(-1, 2)
+            active_right_logits = right_logits.view(-1, 2)
+
+            '''
+            active_left_labels = left_entity_masks.view(-1)[active_left_loss]
+            active_right_labels = right_entity_masks.view(-1)[active_right_loss]
+            '''
+            active_left_labels = torch.where(
+                active_left_loss, left_entity_masks.view(-1), torch.tensor(-100).type_as(left_entity_masks)
+            )
+            active_right_labels = torch.where(
+                active_right_loss, right_entity_masks.view(-1), torch.tensor(-100).type_as(right_entity_masks)
+            )
+
+            left_loss = self.left_loss_fct(active_left_logits, active_left_labels)
+            right_loss = self.right_loss_fct(active_right_logits, active_right_labels)
+
+
+
+            return loss
+        else:
+            return logits, entity_logits
