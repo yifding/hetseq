@@ -299,6 +299,20 @@ def main(args):
         }
     )
 
+    # get NER performance of 'B' only, the correct prediction of entity might inference the correct mention.
+    B_EL_labels = filter_el_labels(EL_labels)
+    B_EL_predictions = filter_el_labels(EL_predictions)
+
+    print(
+        {
+            "B_EL_accuracy_score": accuracy_score(B_EL_labels, B_EL_predictions),
+            "B_EL_precision": precision_score(B_EL_labels, B_EL_predictions),
+            "B_EL_recall": recall_score(B_EL_labels, B_EL_predictions),
+            "B_EL_f1": f1_score(B_EL_labels, B_EL_predictions),
+        }
+    )
+
+
     print(
         {
             "accuracy_score": accuracy_score(NER_labels, NER_predictions),
@@ -307,6 +321,19 @@ def main(args):
             "f1": f1_score(NER_labels, NER_predictions),
         }
     )
+
+
+def filter_el_labels(labels_list):
+    ans_list = []
+    for labels in labels_list:
+        ans = []
+        for label in labels:
+            if label.startswith('B'):
+                ans.append('B')
+            else:
+                ans.append('O')
+        ans_list.append(ans)
+    return ans_list
 
 
 def generate_NER_label(labels):
