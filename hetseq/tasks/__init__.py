@@ -1,6 +1,7 @@
 from .tasks import Task, LanguageModelingTask, MNISTTask
 from .bert_for_el_classification_task import BertForELClassificationTask
 from .bert_for_token_classification_task import BertForTokenClassificationTask
+from .bert_for_el_symmetry_task import BertForELSymmetryTask
 
 __all__ = [
     'Task',
@@ -8,4 +9,5 @@ __all__ = [
     'BertForTokenClassificationTask',
     'MNISTTask',
     'BertForELClassificationTask',
+    'BertForELSymmetryTask',
 ]
