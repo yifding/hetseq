@@ -395,8 +395,8 @@ class TransformersBertForNERSymmetry(BertPreTrainedModel):
         if entity_th_ids is not None:
             assert attention_mask is not None
 
-            active_left_loss = (left_mention_masks == 1)
-            active_right_loss = (right_mention_masks == 1)
+            active_left_loss = left_mention_masks.view(-1) == 1
+            active_right_loss = right_mention_masks.view(-1) == 1
 
             active_left_logits = left_logits.view(-1, 2)
             active_right_logits = right_logits.view(-1, 2)

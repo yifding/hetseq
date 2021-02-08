@@ -22,7 +22,7 @@ class BertELDataset(torch.utils.data.Dataset):
         return np.arange(len(self.dataset))
 
     def num_tokens(self, index: int):
-        return len(self.dataset[index]['labels'])
+        return len(self.dataset[index]['input_ids'])
 
     def collater(self, samples):
         if len(samples) == 0:

@@ -8,7 +8,7 @@ from transformers import BertTokenizerFast
 from hetseq.tasks import Task
 from hetseq.data import BertELDataset
 
-from hetseq.data_collator import YD_DataCollatorForELClassification
+from hetseq.data_collator import DataCollatorForSymmetry
 
 
 _EL_COLUMNS = [
@@ -26,7 +26,7 @@ _EL_COLUMNS = [
 
 class BertForELSymmetryTask(Task):
     def __init__(self, args):
-        super(BertForELsymmetryTask, self).__init__(args)
+        super(BertForELSymmetryTask, self).__init__(args)
 
     @classmethod
     def setup_task(cls, args, **kwargs):
@@ -42,7 +42,7 @@ class BertForELSymmetryTask(Task):
         tokenizer = BertTokenizerFast(args.dict)
 
         # **YD** TODO: write a new data collator
-        data_collator = YD_DataCollatorForELClassification(tokenizer, max_length=args.max_pred_length, padding=True)
+        data_collator = DataCollatorForSymmetry(tokenizer, max_length=args.max_pred_length, padding=True)
 
         # 2. process datasets, (tokenization of NER data)
         # **YD**, add args in option.py for fine-tuning task
@@ -71,7 +71,7 @@ class BertForELSymmetryTask(Task):
             )
 
             offset_mappings = tokenized_inputs.pop("offset_mapping")
-            ori_entity_th_ids = examples["ori_entity_th_ids"]
+            ori_entity_th_ids = examples["entity_th_ids"]
             ori_left_mention_masks = examples["left_mention_masks"]
             ori_right_mention_masks = examples["right_mention_masks"]
             ori_left_entity_masks = examples["left_entity_masks"]
@@ -118,7 +118,6 @@ class BertForELSymmetryTask(Task):
                         left_entity_mask.append(ori_left_entity_mask[label_index])
                         right_entity_mask.append(ori_right_entity_mask[label_index])
 
-                        label.append(ori_label[label_index])
                         label_index += 1
 
                     elif offset[0] == 0 and offset[1] == 0:
@@ -275,10 +274,10 @@ class BertForELSymmetryTask(Task):
         loss = model(**sample)
         if ignore_grad:
             loss *= 0
-        if sample is None or len(sample['labels']) == 0:
+        if sample is None or len(sample['entity_th_ids']) == 0:
             sample_size = 0
         else:
-            sample_size = len(sample['labels'])
+            sample_size = len(sample['entity_th_ids'])
 
         nsentences = sample_size
 
