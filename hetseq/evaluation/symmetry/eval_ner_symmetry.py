@@ -218,10 +218,9 @@ def main(args):
 
         # left_predictions = left_predictions[0].cpu().detach().numpy()
         # right_predictions = right_predictions[0].cpu().detach().numpy()
-        if len(left_predictions) > 200:
-            print('left_predictions', len(left_predictions))
-            print('right_predictions', len(right_predictions))
-            print('entity_th_ids', len(entity_th_ids))
+        # print('left_predictions', len(left_predictions))
+        # print('right_predictions', len(right_predictions))
+        # print('entity_th_ids', len(entity_th_ids))
         # shrink the size follow the labels
         left_predictions = [left_prediction for left_prediction, entity_th_id in zip(
             left_predictions, entity_th_ids) if entity_th_id != -100]
