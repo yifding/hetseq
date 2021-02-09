@@ -1,5 +1,6 @@
 import os
 import argparse
+from collections import defaultdict
 
 from datasets import load_dataset, ClassLabel
 
@@ -189,6 +190,9 @@ def main(args):
     NER_predictions = []
     NER_labels = []
 
+    # **YD** add tokens for results print
+    NER_tokens = []
+
     stop_words = StopWords()
     ent_name_id = EntNameID(args)
     yago_crosswikis_wiki = YagoCrosswikisWiki(args)
@@ -236,6 +240,11 @@ def main(args):
             print("left_predictions", len(left_predictions), left_predictions)
             print("right_predictions", len(right_predictions), right_predictions)
 
+            # fix the bug of too long tokens
+            tmp_len = len(left_predictions)
+            tokens = tokens[: tmp_len]
+            ner_tags = ner_tags[: tmp_len]
+
         assert len(tokens) == len(ner_tags) == len(left_predictions) == len(right_predictions)
 
         NER_label = generate_NER_label(ner_tags, entity_th_ids)
@@ -251,22 +260,109 @@ def main(args):
             print("NER_prediction", len(NER_prediction), NER_prediction)
         assert len(NER_label) == len(NER_prediction)
 
+
         NER_labels.append(NER_label)
         NER_predictions.append(NER_prediction)
+
+        # **YD** add tokens for results print
+        NER_tokens.append(tokens)
 
         if index == 0:
             print('NER_labels', NER_labels)
             print('NER_predictions', NER_predictions)
             print('tokens', tokens)
 
-    print(
-        {
-            "accuracy_score": accuracy_score(NER_labels, NER_predictions),
-            "precision": precision_score(NER_labels, NER_predictions),
-            "recall": recall_score(NER_labels, NER_predictions),
-            "f1": f1_score(NER_labels, NER_predictions),
-        }
-    )
+    B_only_NER_preidictions = B_only(NER_predictions)
+    B_only_NER_labels = B_only(NER_labels)
+
+
+    B_only_performance = {
+        "accuracy_score": accuracy_score(B_only_NER_labels, B_only_NER_preidictions),
+        "precision": precision_score(B_only_NER_labels, B_only_NER_preidictions),
+        "recall": recall_score(B_only_NER_labels, B_only_NER_preidictions),
+        "f1": f1_score(B_only_NER_labels, B_only_NER_preidictions),
+    }
+
+
+    OUTPUT_performance = {
+        "accuracy_score": accuracy_score(NER_labels, NER_predictions),
+        "precision": precision_score(NER_labels, NER_predictions),
+        "recall": recall_score(NER_labels, NER_predictions),
+        "f1": f1_score(NER_labels, NER_predictions),
+    }
+
+    print('B_only NER results')
+    print(B_only_performance)
+    print('NER results')
+    print(OUTPUT_performance)
+
+    NER_label_out = stats(NER_labels)
+    NER_prediction_out = stats(NER_predictions)
+    print('NER_labels', NER_label_out)
+    print('NER_prediction', NER_prediction_out)
+
+
+    with open(args.performance_file, 'w') as writer:
+        writer.write('B_only NER results \n')
+        writer.write(str(B_only_performance) + '\n')
+        writer.write('NER results \n')
+        writer.write(str(OUTPUT_performance) + '\n')
+        writer.write('NER_labels \n')
+        writer.write(str(NER_label_out) + '\n')
+        writer.write(str(NER_prediction_out) + '\n')
+        writer.write('NER_prediction \n')
+
+    with open(args.labeling_file, 'w') as writer:
+        writer.write('TOKEN' + '\t' + 'LABEL' + '\t' + 'Prediction' + '\n')
+        for NER_token, NER_label, NER_prediction in zip(NER_tokens, NER_labels, NER_predictions):
+            for token, label, prediction in zip(NER_token, NER_label, NER_prediction):
+                writer.write(token + '\t' + label + '\t' + prediction + '\n')
+            writer.write('\n')
+
+
+def B_only(labels):
+    B_only_labels = []
+    for label in labels:
+        B_only_label = []
+        for l in label:
+            if l.startswith('B'):
+                B_only_label.append('B')
+            else:
+                B_only_label.append('O')
+        B_only_labels.append(B_only_label)
+    return B_only_labels
+
+
+def stats(labels):
+    len_dict = defaultdict(int)
+    total = 0
+    for label in labels:
+        cur_len = 0
+        for i, l in enumerate(label):
+            # 1. deal with finished entity
+            if cur_len > 0:
+                if l.startswith('O') or l.startswith('B'):
+                    len_dict[cur_len] += 1
+                    cur_len = 0
+                else:
+                    assert l.startswith('I')
+                    cur_len += 1
+
+            if l.startswith('B'):
+                total += 1
+                cur_len = 1
+
+            if i == len(label) - 1 and cur_len > 0:
+                len_dict[cur_len] += 1
+
+    output = {
+        'total': total,
+        'len_dict': len_dict,
+    }
+
+    assert total == sum(len_dict.values())
+
+    return output
 
 
 def generate_NER_prediction(
@@ -586,6 +682,21 @@ def cli_main():
         type=float,
         default=1.0,
         help='total threshold',
+    )
+
+    # **YD** output files of performance and labelling
+    parser.add_argument(
+        '--labeling_file',
+        type=str,
+        default='./labelling.log',
+        help='output labelling file',
+    )
+
+    parser.add_argument(
+        '--performance_file',
+        type=str,
+        default='./performance.log',
+        help='output performance file',
     )
 
     args = parser.parse_args()
