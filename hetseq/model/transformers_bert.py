@@ -13,7 +13,7 @@ from torch.nn import CrossEntropyLoss
 _OUT_DICT_ENTITY_ID = -1
 _IGNORE_CLASSIFICATION_LABEL = -100
 NER_LABEL_DICT = {'B': 0, 'I':1, 'O':2}
-
+MAX_LEN_MENTION = 4
 
 # https://stackoverflow.com/questions/50411191/how-to-compute-the-cosine-similarity-in-pytorch-for-all-rows-in-a-matrix-with-re
 def sim_matrix(a, b, eps=1e-8):
@@ -433,18 +433,19 @@ class TransformersBertForELSymmetry(BertPreTrainedModel):
         self.left_classifier = nn.Linear(config.hidden_size, 2)
         self.right_classifier = nn.Linear(config.hidden_size, 2)
 
-        # **YD** support weight for entity linking loss.
+        # **YD** entity related parameters
         self.entity_loss_weight = args.entity_loss_weight if hasattr(args, 'entity_loss_weight') else 1
-
         self.num_entity_labels = args.num_entity_labels
         self.dim_entity_emb = args.dim_entity_emb
 
-        # **YD** concatenate left and right hidden states to predict entity class
         self.entity_classifier = nn.Linear(2 * config.hidden_size, self.dim_entity_emb)
 
         self.init_weights()
 
-        # **YD** TODO args.EntityEmbedding to be added.
+        self.left_loss_fct = nn.CrossEntropyLoss()
+        self.right_loss_fct = nn.CrossEntropyLoss()
+
+        # **YD** args.EntityEmbedding to be added.
         if hasattr(args, "ent_emb_no_freeze") and args.ent_emb_no_freeze:
             self.entity_emb = nn.Embedding.from_pretrained(args.EntityEmbedding, freeze=False)
         else:
@@ -456,8 +457,7 @@ class TransformersBertForELSymmetry(BertPreTrainedModel):
 
         self.activate = torch.tanh
 
-        self.left_loss_fct = nn.CrossEntropyLoss()
-        self.right_loss_fct = nn.CrossEntropyLoss()
+        self.entity_loss_fct = nn.CosineEmbeddingLoss()
 
     def forward(
         self,
@@ -466,10 +466,16 @@ class TransformersBertForELSymmetry(BertPreTrainedModel):
         token_type_ids=None,
 
         entity_th_ids=None,
-        left_mention_masks=None,
-        right_mention_masks=None,
+
+        # **YD** left_mention_masks and right_mention_masks are deprecated
+        # left_mention_masks=None,
+        # right_mention_masks=None,
+
         left_entity_masks=None,
         right_entity_masks=None,
+
+        span_masks=None,
+        span_cand_entities=None,
 
         position_ids=None,
         head_mask=None,
@@ -497,36 +503,76 @@ class TransformersBertForELSymmetry(BertPreTrainedModel):
         left_logits = self.left_classifier(sequence_output)
         right_logits = self.right_classifier(sequence_output)
 
-        # **YD** make simple ideas by classifying
-        entity_logits = self.entity_classifier(sequence_output)
-        entity_logits = self.activate(entity_logits)
+        # **YD** compute ED logits
+        el_sequence_output = sequence_output.view(-1, self.config.hidden_size)
 
+        batch_size = left_logits.shape[0]
+        num_token = left_logits.shape[1]
+        total_token = batch_size * num_token
+
+        # **YD** max_len_mention has been implemented
+        max_len_mention = span_masks.shape[2]
+        ent_left_side = torch.repeat_interleave(torch.arange(total_token), max_len_mention)
+        ent_right_side = torch.arange(total_token - 1 + max_len_mention).unfold(0, max_len_mention, 1).reshape(-1)
+        ent_right_side[ent_right_side >= total_token] = 0
+
+        entity_output = torch.cat((el_sequence_output[ent_left_side], el_sequence_output[ent_right_side]), axis=1)
+        entity_output = self.entity_classifier(entity_output)
+        entity_output = self.activate(entity_output)
 
         if entity_th_ids is not None:
             assert attention_mask is not None
 
-            active_left_loss = left_mention_masks >= 0
-            active_right_loss = right_mention_masks >= 0
-
+            # **YD** compute NER loss
             active_left_logits = left_logits.view(-1, 2)
             active_right_logits = right_logits.view(-1, 2)
 
-            '''
-            active_left_labels = left_entity_masks.view(-1)[active_left_loss]
-            active_right_labels = right_entity_masks.view(-1)[active_right_loss]
-            '''
-            active_left_labels = torch.where(
-                active_left_loss, left_entity_masks.view(-1), torch.tensor(-100).type_as(left_entity_masks)
-            )
-            active_right_labels = torch.where(
-                active_right_loss, right_entity_masks.view(-1), torch.tensor(-100).type_as(right_entity_masks)
-            )
+            active_left_labels = left_entity_masks.view(-1)
+            active_right_labels = right_entity_masks.view(-1)
 
             left_loss = self.left_loss_fct(active_left_logits, active_left_labels)
             right_loss = self.right_loss_fct(active_right_logits, active_right_labels)
 
+            ner_loss = left_loss + right_loss
 
+            # **YD** compute ED loss
+            # **YD** max_len_mention has not implemented
+            entity_output = entity_output.view(total_token, max_len_mention, 2 * dim_emb)
+
+            ent_left_index = left_entity_masks.view(-1).nonzero(as_tuple=True)[0]
+            ent_right_index = right_entity_masks.view(-1).nonzero(as_tuple=True)[0]
+            ent_true_right_index = ent_right_index - ent_left_index
+
+            entity_output = entity_output[ent_left_index, ent_true_right_index]
+
+            # **YD** candidate entities can be utilized to compute hinge loss, as features to predict NER and etc.
+            # cand_entity_output = span_cand_entities[ent_left_index, ent_true_right_index]
+
+            entity_active_loss = (active_left_labels > 0)
+            entity_active_labels = entity_th_ids.view(-1)[entity_active_loss]
+
+            entity_loss = self.entity_loss_fct(
+                entity_output,
+                self.entity_emb.weight[entity_active_labels],
+                torch.tensor(1).type_as(entity_output)
+            )
+
+            if torch.isnan(entity_loss):
+                loss = ner_loss
+            else:
+                loss = ner_loss + self.entity_loss_weight * entity_loss
 
             return loss
+
         else:
-            return logits, entity_logits
+            # **YD** entity_output.shape = [batch_size, len_tokens, max_len_mentions, dim_entity_emb]
+            assert entity_output.shape[3] == self.dim_entity_emb
+            re_logits = sim_matrix(entity_output.view(-1, self.dim_entity_emb), self.entity_emb.weight)
+            entity_logits = re_logits.view(
+                entity_output.shape[0],
+                entity_output.shape[1],
+                entity_output.shape[2],
+                self.num_entity_labels,
+            )
+
+            return left_logits, right_logits, entity_logits
