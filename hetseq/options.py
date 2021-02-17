@@ -276,6 +276,168 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
                 help='entity embedding file for given dictionary',
             )
 
+        elif task == 'BertForELSymmetry':
+            parser.add_argument('--task', type=str, default='BertForELSymmetry')
+            parser.add_argument('--data', type=str,
+                                help='path including data')
+
+            group.add_argument('--dict', type=str, metavar='PATH of a file',
+                               help='PATH to dictionary')
+            group.add_argument('--config_file', type=str, metavar='PATH of a file',
+                               help='PATH to bert model configuration', required=True)
+            group.add_argument('--max_pred_length', type=int, default=512,
+                               help='max number of tokens in a sentence')
+
+            group.add_argument('--hetseq_state_dict', type=str, default=None,
+                               help='PATH to load hetseq model state dictionary')
+            group.add_argument('--transformers_state_dict', type=str, default=None,
+                               help='PATH to load transformers official model state dictionary')
+
+            group.add_argument('--train_file', type=str, default=None,
+                               help='PATH to training file')
+            group.add_argument('--validation_file', type=str, default=None,
+                               help='PATH to validation file')
+            group.add_argument('--test_file', type=str, default=None,
+                               help='PATH to test file')
+            group.add_argument('--extension_file', type=str, default=None,
+                               help='PATH to extension file to build NER datasets')
+
+            """ **YD** obtain by reading the NER data
+            group.add_argument('--num_label', type=int, default=3,
+                               help='Number of labels in NER output')
+            """
+
+            group.add_argument('--load_state_dict_strict', type=eval,
+                               default="False",
+                               help='whether strictly load state_dict')
+
+            group.add_argument('--ent_emb_no_freeze',
+                               action='store_true',
+                               help='whether strictly load state_dict')
+
+            group.add_argument('--entity_loss_weight', default=1, type=int, metavar='N',
+                               help='weight of entity loss function in the model')
+
+            group.add_argument('--backbones',
+                               type=str,
+                               default='bert-base-uncased',
+                               choices=['bert-base-uncased', 'bert-large-uncased'],
+                               help='backbone transformers model'
+                               )
+
+            group.add_argument('--model_class',
+                               type=str,
+                               default='TransformersBertForNERSymmetry',
+                               choices=['TransformersBertForNERSymmetry',
+                                        'TransformersBertForELSymmetry',
+                                        ],
+                               help='model_class source',
+                               )
+            # **YD** deep_ed arguments
+            parser.add_argument(
+                '--root_data_dir',
+                type=str,
+                default='/home/yding4/EL_resource/data/deep_ed_PyTorch_data/',
+                help='Root path of the data, $DATA_PATH.',
+            )
+
+            parser.add_argument(
+                '--entities',
+                type=str,
+                default='RLTD',
+                choices=['RLTD', '4EX', 'ALL'],
+                help='Set of entities for which we train embeddings: 4EX (tiny, for debug) |'
+                     ' RLTD (restricted set) | ALL (all Wiki entities, too big to fit on a single GPU)',
+            )
+
+            parser.add_argument(
+                '--ent_vecs_filename',
+                type=str,
+                default='/home/yding4/EL_resource/data/deep_ed_PyTorch_data/generated/ent_vecs/ent_vecs__ep_9.pt',
+                help='entity embedding file for given dictionary',
+            )
+
+        elif task == 'BertForELSymmetryWithEntCand':
+            parser.add_argument('--task', type=str, default='BertForELSymmetryWithEntCand')
+            parser.add_argument('--data', type=str,
+                                help='path including data')
+
+            group.add_argument('--dict', type=str, metavar='PATH of a file',
+                               help='PATH to dictionary')
+            group.add_argument('--config_file', type=str, metavar='PATH of a file',
+                               help='PATH to bert model configuration', required=True)
+            group.add_argument('--max_pred_length', type=int, default=512,
+                               help='max number of tokens in a sentence')
+
+            group.add_argument('--hetseq_state_dict', type=str, default=None,
+                               help='PATH to load hetseq model state dictionary')
+            group.add_argument('--transformers_state_dict', type=str, default=None,
+                               help='PATH to load transformers official model state dictionary')
+
+            group.add_argument('--train_file', type=str, default=None,
+                               help='PATH to training file')
+            group.add_argument('--validation_file', type=str, default=None,
+                               help='PATH to validation file')
+            group.add_argument('--test_file', type=str, default=None,
+                               help='PATH to test file')
+            group.add_argument('--extension_file', type=str, default=None,
+                               help='PATH to extension file to build NER datasets')
+
+            """ **YD** obtain by reading the NER data
+            group.add_argument('--num_label', type=int, default=3,
+                               help='Number of labels in NER output')
+            """
+
+            group.add_argument('--load_state_dict_strict', type=eval,
+                               default="False",
+                               help='whether strictly load state_dict')
+
+            group.add_argument('--ent_emb_no_freeze',
+                               action='store_true',
+                               help='whether strictly load state_dict')
+
+            group.add_argument('--entity_loss_weight', default=1, type=int, metavar='N',
+                               help='weight of entity loss function in the model')
+
+            group.add_argument('--backbones',
+                               type=str,
+                               default='bert-base-uncased',
+                               choices=['bert-base-uncased', 'bert-large-uncased'],
+                               help='backbone transformers model'
+                               )
+
+            group.add_argument('--model_class',
+                               type=str,
+                               default='TransformersBertForNERSymmetry',
+                               choices=['TransformersBertForNERSymmetry',
+                                        'TransformersBertForELSymmetry',
+                                        ],
+                               help='model_class source',
+                               )
+            # **YD** deep_ed arguments
+            parser.add_argument(
+                '--root_data_dir',
+                type=str,
+                default='/home/yding4/EL_resource/data/deep_ed_PyTorch_data/',
+                help='Root path of the data, $DATA_PATH.',
+            )
+
+            parser.add_argument(
+                '--entities',
+                type=str,
+                default='RLTD',
+                choices=['RLTD', '4EX', 'ALL'],
+                help='Set of entities for which we train embeddings: 4EX (tiny, for debug) |'
+                     ' RLTD (restricted set) | ALL (all Wiki entities, too big to fit on a single GPU)',
+            )
+
+            parser.add_argument(
+                '--ent_vecs_filename',
+                type=str,
+                default='/home/yding4/EL_resource/data/deep_ed_PyTorch_data/generated/ent_vecs/ent_vecs__ep_9.pt',
+                help='entity embedding file for given dictionary',
+            )
+
         else:
             raise ValueError('unsupported task: {}'.format(task))
 
