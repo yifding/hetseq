@@ -5,6 +5,12 @@ import torch
 import numpy as np
 from transformers.tokenization_utils_base import BatchEncoding, PaddingStrategy, PreTrainedTokenizerBase
 
+from hetseq.utils import apply_to_sample
+
+
+def to_list_func(sample):
+    return sample.tolist()
+
 
 @dataclass
 class DataCollatorForSymmetry:
@@ -67,12 +73,6 @@ class DataCollatorForSymmetry:
         max_len = max(len_list)
 
         # print(len(features), features)
-        def process_label(label):
-            if type(label) is torch.Tensor:
-                return label.tolist()
-            else:
-                assert type(label) is list
-                return label
 
         # **YD** manually padding to solve the NER padding issues.
         batch = {
@@ -90,85 +90,85 @@ class DataCollatorForSymmetry:
         for feature in features:
             if self.tokenizer.padding_side == "right":
                 batch["input_ids"].append(
-                    process_label(feature["input_ids"]) + [self.INPUT_IDS_PAD] * (max_len - len(feature["input_ids"]))
+                    apply_to_sample(to_list_func, feature["input_ids"]) + [self.INPUT_IDS_PAD] * (max_len - len(feature["input_ids"]))
                 )
 
                 batch["token_type_ids"].append(
-                    process_label(feature["token_type_ids"]) + [self.TOKEN_TYPE_ID_PAD] * (
+                    apply_to_sample(to_list_func, feature["token_type_ids"]) + [self.TOKEN_TYPE_ID_PAD] * (
                             max_len - len(feature["token_type_ids"])
                     )
                 )
 
                 batch["attention_mask"].append(
-                    process_label(feature["attention_mask"]) + [self.ATTENTION_MASK_PAD] * (
+                    apply_to_sample(to_list_func, feature["attention_mask"]) + [self.ATTENTION_MASK_PAD] * (
                             max_len - len(feature["attention_mask"]))
                 )
 
                 batch["entity_th_ids"].append(
-                    process_label(feature["entity_th_ids"]) + [self.ENTITY_LABELS_PAD] * (
+                    apply_to_sample(to_list_func, feature["entity_th_ids"]) + [self.ENTITY_LABELS_PAD] * (
                             max_len - len(feature["entity_th_ids"]))
                 )
 
                 batch["left_mention_masks"].append(
-                    process_label(feature["left_mention_masks"]) + [self.ATTENTION_MASK_PAD] * (
+                    apply_to_sample(to_list_func, feature["left_mention_masks"]) + [self.ATTENTION_MASK_PAD] * (
                             max_len - len(feature["left_mention_masks"]))
                 )
 
                 batch["right_mention_masks"].append(
-                    process_label(feature["right_mention_masks"]) + [self.ATTENTION_MASK_PAD] * (
+                    apply_to_sample(to_list_func, feature["right_mention_masks"]) + [self.ATTENTION_MASK_PAD] * (
                             max_len - len(feature["right_mention_masks"]))
                 )
 
                 batch["left_entity_masks"].append(
-                    process_label(feature["left_entity_masks"]) + [self.ATTENTION_MASK_PAD] * (
+                    apply_to_sample(to_list_func, feature["left_entity_masks"]) + [self.ATTENTION_MASK_PAD] * (
                             max_len - len(feature["left_entity_masks"]))
                 )
 
                 batch["right_entity_masks"].append(
-                    process_label(feature["right_entity_masks"]) + [self.ATTENTION_MASK_PAD] * (
+                    apply_to_sample(to_list_func, feature["right_entity_masks"]) + [self.ATTENTION_MASK_PAD] * (
                             max_len - len(feature["right_entity_masks"]))
                 )
 
             else:
                 batch["input_ids"].append(
-                    [self.INPUT_IDS_PAD] * (max_len - len(feature["input_ids"])) + process_label(feature["input_ids"])
+                    [self.INPUT_IDS_PAD] * (max_len - len(feature["input_ids"])) + apply_to_sample(to_list_func, feature["input_ids"])
                 )
 
                 batch["token_type_ids"].append(
                      [self.TOKEN_TYPE_ID_PAD] * (
                         max_len - len(feature["token_type_ids"])
-                     ) + process_label(feature["token_type_ids"])
+                     ) + apply_to_sample(to_list_func, feature["token_type_ids"])
                 )
 
                 batch["attention_mask"].append(
                     [self.ATTENTION_MASK_PAD] * (
-                            max_len - len(feature["attention_mask"])) + process_label(feature["attention_mask"])
+                            max_len - len(feature["attention_mask"])) + apply_to_sample(to_list_func, feature["attention_mask"])
                 )
 
                 batch["entity_th_ids"].append(
                     [self.ENTITY_LABELS_PAD] * (
-                            max_len - len(feature["entity_th_ids"])) + process_label(feature["entity_th_ids"])
+                            max_len - len(feature["entity_th_ids"])) + apply_to_sample(to_list_func, feature["entity_th_ids"])
                 )
 
                 batch["left_mention_masks"].append(
                     [self.ATTENTION_MASK_PAD] * (
-                            max_len - len(feature["left_mention_masks"])) + process_label(feature["left_mention_masks"])
+                            max_len - len(feature["left_mention_masks"])) + apply_to_sample(to_list_func, feature["left_mention_masks"])
                 )
 
                 batch["right_mention_masks"].append(
                     [self.ATTENTION_MASK_PAD] * (
                             max_len - len(feature["right_mention_masks"])) +
-                    process_label(feature["right_mention_masks"])
+                    apply_to_sample(to_list_func, feature["right_mention_masks"])
                 )
 
                 batch["left_entity_masks"].append(
                     [self.ATTENTION_MASK_PAD] * (
-                            max_len - len(feature["left_entity_masks"])) + process_label(feature["left_entity_masks"])
+                            max_len - len(feature["left_entity_masks"])) + apply_to_sample(to_list_func, feature["left_entity_masks"])
                 )
 
                 batch["right_entity_masks"].append(
                     [self.ATTENTION_MASK_PAD] * (
-                            max_len - len(feature["right_entity_masks"])) + process_label(feature["right_entity_masks"])
+                            max_len - len(feature["right_entity_masks"])) + apply_to_sample(to_list_func, feature["right_entity_masks"])
                 )
 
         labels = [feature[label_name] for feature in features] if label_name in features[0].keys() else None
@@ -245,14 +245,6 @@ class DataCollatorForSymmetryWithCandEntities:
         len_list = [len(feature[label_name]) for feature in features]
         max_len = max(len_list)
 
-        # print(len(features), features)
-        def process_label(label):
-            if type(label) is torch.Tensor:
-                return label.tolist()
-            else:
-                assert type(label) is list
-                return label
-
         # **YD** manually padding to solve the NER padding issues.
         batch = {
             "input_ids": [],
@@ -268,7 +260,6 @@ class DataCollatorForSymmetryWithCandEntities:
         }
 
         for feature in features:
-
             # len_token
             assert len(feature["span_cand_entities"]) == len(feature["span_masks"])
             # max_len_mention
@@ -285,86 +276,86 @@ class DataCollatorForSymmetryWithCandEntities:
 
             if self.tokenizer.padding_side == "right":
                 batch["input_ids"].append(
-                    process_label(feature["input_ids"]) + [self.INPUT_IDS_PAD] * (max_len - len(feature["input_ids"]))
+                    apply_to_sample(to_list_func, feature["input_ids"]) + [self.INPUT_IDS_PAD] * (max_len - len(feature["input_ids"]))
                 )
 
                 batch["token_type_ids"].append(
-                    process_label(feature["token_type_ids"]) + [self.TOKEN_TYPE_ID_PAD] * (
+                    apply_to_sample(to_list_func, feature["token_type_ids"]) + [self.TOKEN_TYPE_ID_PAD] * (
                             max_len - len(feature["token_type_ids"])
                     )
                 )
 
                 batch["attention_mask"].append(
-                    process_label(feature["attention_mask"]) + [self.ATTENTION_MASK_PAD] * (
+                    apply_to_sample(to_list_func, feature["attention_mask"]) + [self.ATTENTION_MASK_PAD] * (
                             max_len - len(feature["attention_mask"]))
                 )
 
                 batch["entity_th_ids"].append(
-                    process_label(feature["entity_th_ids"]) + [self.ENTITY_LABELS_PAD] * (
+                    apply_to_sample(to_list_func, feature["entity_th_ids"]) + [self.ENTITY_LABELS_PAD] * (
                             max_len - len(feature["entity_th_ids"]))
                 )
 
                 batch["left_entity_masks"].append(
-                    process_label(feature["left_entity_masks"]) + [self.ATTENTION_MASK_PAD] * (
+                    apply_to_sample(to_list_func, feature["left_entity_masks"]) + [self.ATTENTION_MASK_PAD] * (
                             max_len - len(feature["left_entity_masks"]))
                 )
 
                 batch["right_entity_masks"].append(
-                    process_label(feature["right_entity_masks"]) + [self.ATTENTION_MASK_PAD] * (
+                    apply_to_sample(to_list_func, feature["right_entity_masks"]) + [self.ATTENTION_MASK_PAD] * (
                             max_len - len(feature["right_entity_masks"]))
                 )
 
                 batch["span_masks"].append(
-                    process_label(feature["span_masks"]) + [list(pad_span_mask) for _ in range(
+                    apply_to_sample(to_list_func, feature["span_masks"]) + [list(pad_span_mask) for _ in range(
                         max_len - len(feature["span_masks"])
                     )]
                 )
 
                 batch["span_cand_entities"].append(
-                    process_label(feature["span_cand_entities"]) + [list(pad_span_cand_entity) for _ in range(
+                    apply_to_sample(to_list_func, feature["span_cand_entities"]) + [list(pad_span_cand_entity) for _ in range(
                             max_len - len(feature["span_cand_entities"])
                     )]
                 )
 
             else:
                 batch["input_ids"].append(
-                    [self.INPUT_IDS_PAD] * (max_len - len(feature["input_ids"])) + process_label(feature["input_ids"])
+                    [self.INPUT_IDS_PAD] * (max_len - len(feature["input_ids"])) + apply_to_sample(to_list_func, feature["input_ids"])
                 )
 
                 batch["token_type_ids"].append(
                      [self.TOKEN_TYPE_ID_PAD] * (
                         max_len - len(feature["token_type_ids"])
-                     ) + process_label(feature["token_type_ids"])
+                     ) + apply_to_sample(to_list_func, feature["token_type_ids"])
                 )
 
                 batch["attention_mask"].append(
                     [self.ATTENTION_MASK_PAD] * (
-                            max_len - len(feature["attention_mask"])) + process_label(feature["attention_mask"])
+                            max_len - len(feature["attention_mask"])) + apply_to_sample(to_list_func, feature["attention_mask"])
                 )
 
                 batch["entity_th_ids"].append(
                     [self.ENTITY_LABELS_PAD] * (
-                            max_len - len(feature["entity_th_ids"])) + process_label(feature["entity_th_ids"])
+                            max_len - len(feature["entity_th_ids"])) + apply_to_sample(to_list_func, feature["entity_th_ids"])
                 )
 
                 batch["left_entity_masks"].append(
                     [self.ATTENTION_MASK_PAD] * (
-                            max_len - len(feature["left_entity_masks"])) + process_label(feature["left_entity_masks"])
+                            max_len - len(feature["left_entity_masks"])) + apply_to_sample(to_list_func, feature["left_entity_masks"])
                 )
 
                 batch["right_entity_masks"].append(
                     [self.ATTENTION_MASK_PAD] * (
-                            max_len - len(feature["right_entity_masks"])) + process_label(feature["right_entity_masks"])
+                            max_len - len(feature["right_entity_masks"])) + apply_to_sample(to_list_func, feature["right_entity_masks"])
                 )
 
                 batch["span_masks"].append(
                     [list(pad_span_mask) for _ in range(max_len - len(feature["span_masks"]))] +
-                    process_label(feature["span_masks"])
+                    apply_to_sample(to_list_func, feature["span_masks"])
                 )
 
                 batch["span_cand_entities"].append(
                     [list(pad_span_cand_entity) for _ in range(max_len - len(feature["span_cand_entities"]))] +
-                    process_label(feature["span_cand_entities"])
+                    apply_to_sample(to_list_func, feature["span_cand_entities"])
                 )
 
         labels = [feature[label_name] for feature in features] if label_name in features[0].keys() else None
