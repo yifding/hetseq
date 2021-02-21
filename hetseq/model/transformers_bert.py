@@ -586,12 +586,12 @@ class TransformersBertForELSymmetry(BertPreTrainedModel):
 
         else:
             # **YD** entity_output.shape = [batch_size, len_tokens, max_len_mentions, dim_entity_emb]
-            assert entity_output.shape[3] == self.dim_entity_emb
+            assert entity_output.shape[1] == self.dim_entity_emb
             re_logits = sim_matrix(entity_output.view(-1, self.dim_entity_emb), self.entity_emb.weight)
             entity_logits = re_logits.view(
-                entity_output.shape[0],
-                entity_output.shape[1],
-                entity_output.shape[2],
+                batch_size,
+                num_token,
+                max_len_mention,
                 self.num_entity_labels,
             )
 
