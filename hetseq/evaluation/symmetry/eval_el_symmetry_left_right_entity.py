@@ -202,6 +202,11 @@ def main(args):
         num_workers=0,
     )
 
+    # load entity embedding and set up shape parameters
+    args.EntityEmbedding = torch.load(args.ent_vecs_filename, map_location='cpu')
+    args.num_entity_labels = args.EntityEmbedding.shape[0]
+    args.dim_entity_emb = args.EntityEmbedding.shape[1]
+
     model = prepare_model(args)
     model.cuda()
     model.eval()
@@ -366,6 +371,8 @@ def main(args):
         writer.write(str(NER_label_out) + '\n')
         writer.write('NER_prediction \n')
         writer.write(str(NER_prediction_out) + '\n')
+        writer.write('EL results \n')
+        writer.write(str(EL_performance) + '\n')
         writer.write('EL_labels \n')
         writer.write(str(EL_label_out) + '\n')
         writer.write('EL_prediction \n')
@@ -594,7 +601,7 @@ def generate_EL_prediction(
                         max_score = entity_prediction[thid]
                         select_thid = thid
 
-                cur_entity = str(select_thid)
+                cur_entity = str(int(select_thid))
                 EL_prediction[index: index + span_len] = ['B-' + cur_entity] + ['I-' + cur_entity] * (span_len - 1)
 
     return EL_prediction
@@ -604,8 +611,9 @@ def generate_EL_label(ner_tags, entity_th_ids):
     cur_entity = 'O'
 
     for ner_tag, entity_th_id in zip(ner_tags, entity_th_ids):
+        entity_th_id = int(entity_th_id)
         if ner_tag == -100 or ner_tag == NER_LABEL_DICT['O']:
-            assert entity_label <= 0
+            assert entity_th_id <= 0
             cur_entity = 'O'
             EL_label.append(cur_entity)
 
@@ -815,8 +823,8 @@ def cli_main():
     parser.add_argument(
         '--model_class',
         type=str,
-        default='TransformersBertForNERSymmetry',
-        choices=['TransformersBertForNERSymmetry'],
+        default='TransformersBertForELSymmetry',
+        choices=['TransformersBertForELSymmetry'],
         help='model_class source',
     )
 
