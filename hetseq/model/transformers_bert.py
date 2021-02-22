@@ -539,7 +539,6 @@ class TransformersBertForELSymmetry(BertPreTrainedModel):
             # **YD** max_len_mention has not implemented
             entity_output = entity_output.view(total_token, max_len_mention, self.dim_entity_emb)
 
-            ent_left_index = (left_entity_masks.view(-1) > 0).nonzero(as_tuple=True)[0]
 
             ''' 
             # **YD** sever bug, the diff between ent_right_index and ent_left_index 
@@ -548,11 +547,17 @@ class TransformersBertForELSymmetry(BertPreTrainedModel):
             ent_right_index = (right_entity_masks.view(-1) > 0).nonzero(as_tuple=True)[0]
             ent_true_right_index = ent_right_index - ent_left_index
             '''
+            ent_pre_thid = entity_th_ids.view(-1)
+            ent_left_thid = entity_th_ids.view(-1)[(left_entity_masks.view(-1) != -100)]
+            ent_right_thid = entity_th_ids.view(-1)[(right_entity_masks.view(-1) != -100)]
+
+            ent_left_index = ((left_entity_masks.view(-1) > 0) & (ent_pre_thid > 0)).nonzero(as_tuple=True)[0]
 
             ent_plain_left_index = left_entity_masks.view(-1)[(left_entity_masks.view(-1) != -100)]
             ent_plain_right_index = right_entity_masks.view(-1)[(right_entity_masks.view(-1) != -100)]
-            ent_tmp_left_index = (ent_plain_left_index > 0).nonzero(as_tuple=True)[0]
-            ent_tmp_right_index = (ent_plain_right_index > 0).nonzero(as_tuple=True)[0]
+
+            ent_tmp_left_index = ((ent_plain_left_index > 0) & (ent_left_thid > 0)).nonzero(as_tuple=True)[0]
+            ent_tmp_right_index = ((ent_plain_right_index > 0) & (ent_right_thid > 0)).nonzero(as_tuple=True)[0]
             ent_true_right_index = ent_tmp_right_index - ent_tmp_left_index
 
 
@@ -564,7 +569,7 @@ class TransformersBertForELSymmetry(BertPreTrainedModel):
                 # **YD** candidate entities can be utilized to compute hinge loss, as features to predict NER and etc.
                 # cand_entity_output = span_cand_entities[ent_left_index, ent_true_right_index]
 
-                entity_active_loss = (active_left_labels > 0)
+                entity_active_loss = (entity_th_ids.view(-1) > 0) & (left_entity_masks.view(-1) > 0)
                 entity_active_labels = entity_th_ids.view(-1)[entity_active_loss]
 
                 #print('entity_output', entity_output.shape)
