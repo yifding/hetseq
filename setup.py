@@ -42,6 +42,7 @@ setup(
     version='1.0.0',
     description='Distributed GPU Training on Heterogeneous Infrastructureg',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     setup_requires=[
         'cython',
         'numpy',
