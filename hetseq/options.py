@@ -105,10 +105,12 @@ def add_dataset_args(parser, train=False, gen=False,  task='bert'):
             group.add_argument('--extension_file', type=str, default=None,
                                help='PATH to extension file to build NER datasets')
 
-            """ **YD** obtain by reading the NER data
-            group.add_argument('--num_label', type=int, default=3,
-                               help='Number of labels in NER output')
-            """
+            group.add_argument('--backbones',
+                               type=str,
+                               default='bert-base-uncased',
+                               choices=['bert-base-uncased', 'bert-large-uncased'],
+                               help='backbone transformers model'
+                               )
 
             group.add_argument('--load_state_dict_strict', type=eval,
                                default="False",
