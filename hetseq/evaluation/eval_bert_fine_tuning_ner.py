@@ -106,7 +106,7 @@ def main(args):
         load_from_cache_file=False,
     )
 
-    test_dataset = tokenized_datasets['test']
+    test_dataset = tokenized_datasets[args.split]
     # **YD** core code to keep only usefule parameters for model
     test_dataset.set_format(type=test_dataset.format["type"], columns=_NER_COLUMNS)
 
@@ -232,6 +232,14 @@ def cli_main():
         '--test_file',
         help='local test file for BERT-ner fine-tuning',
         type=str,
+    )
+
+    parser.add_argument(
+        '--split',
+        help='split to select from parts',
+        type=str,
+        default='test',
+        choices=['train', 'validation', 'test'],
     )
 
     parser.add_argument(
