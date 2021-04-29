@@ -3,11 +3,8 @@ import argparse
 
 from datasets import load_dataset, ClassLabel
 
-from hetseq.bert_modeling import (
-    BertConfig,
-    BertForPreTraining,
-    BertForTokenClassification,
-)
+from transformers import BertConfig
+from hetseq.model import TransformersBertForTokenClassification
 
 from hetseq import utils
 from hetseq.data_collator import YD_DataCollatorForTokenClassification
@@ -161,12 +158,13 @@ def main(args):
 
     print(
         {
-        "accuracy_score": accuracy_score(true_labels, true_predictions),
-        "precision": precision_score(true_labels, true_predictions),
-        "recall": recall_score(true_labels, true_predictions),
-        "f1": f1_score(true_labels, true_predictions),
+            "accuracy_score": accuracy_score(true_labels, true_predictions),
+            "precision": precision_score(true_labels, true_predictions),
+            "recall": recall_score(true_labels, true_predictions),
+            "f1": f1_score(true_labels, true_predictions),
         }
     )
+
 
 def prepare_dataset(args):
     data_files = {}
@@ -196,11 +194,11 @@ def prepare_tokenizer(args):
 
 
 def prepare_model(args):
+
     config = BertConfig.from_json_file(args.config_file)
-    model = BertForTokenClassification(config, args.num_labels)
-    if args.hetseq_state_dict != '':
-        # load hetseq state_dictionary
-        model.load_state_dict(torch.load(args.hetseq_state_dict, map_location='cpu')['model'], strict=True)
+    model = TransformersBertForTokenClassification(config, args.num_labels)
+    assert args.hetseq_state_dict != ''
+    model.load_state_dict(torch.load(args.hetseq_state_dict, map_location='cpu')['model'], strict=True)
 
     return model
 
@@ -267,6 +265,14 @@ def cli_main():
         help='batch size for data_loader',
         type=int,
         default=8,
+    )
+
+    parser.add_argument(
+        '--model_class',
+        help='local training file for BERT-ner fine-tuning',
+        default='TransformersBertForTokenClassification',
+        type=str,
+        choices=['TransformersBertForTokenClassification'],
     )
 
     args = parser.parse_args()

@@ -132,30 +132,44 @@ class BertForTokenClassificationTask(Task):
 
     def build_model(self, args):
         if args.task == 'BertForTokenClassification':
-            # obtain num_label from dataset before assign model
-            from hetseq.bert_modeling import BertForTokenClassification, BertConfig
-            config = BertConfig.from_json_file(args.config_file)
-            # **YD** mention detection, num_label is by default 3
             assert hasattr(args, 'num_labels')
             num_labels = args.num_labels
-            model = BertForTokenClassification(config, num_labels)
 
             # **YD** add load state_dict from pre-trained model
             # could make only master model to load from state_dict, not quite sure whether this works for single GPU
             # if distributed_utils.is_master(args) and args.hetseq_state_dict is not None:
             if args.hetseq_state_dict is not None:
+                from hetseq.bert_modeling import BertForTokenClassification, BertConfig
+                config = BertConfig.from_json_file(args.config_file)
+                model = BertForTokenClassification(config, num_labels)
                 state_dict = torch.load(args.hetseq_state_dict, map_location='cpu')['model']
+
                 if args.load_state_dict_strict:
                     model.load_state_dict(state_dict, strict=True)
                 else:
                     model.load_state_dict(state_dict, strict=False)
 
             elif args.transformers_state_dict is not None:
+
+                from transformers import BertConfig
+                from hetseq.model import TransformersBertForTokenClassification
+                config = BertConfig.from_json_file(args.config_file)
+                model = TransformersBertForTokenClassification(config=config, num_labels=args.num_labels)
                 state_dict = torch.load(args.transformers_state_dict, map_location='cpu')
                 if args.load_state_dict_strict:
                     model.load_state_dict(state_dict, strict=True)
                 else:
                     model.load_state_dict(state_dict, strict=False)
+
+            else:
+                from transformers import BertConfig
+                from hetseq.model import TransformersBertForTokenClassification
+                config = BertConfig.from_json_file(args.config_file)
+                model = TransformersBertForTokenClassification.from_pretrained(
+                    args.backbones, config=config, num_labels=args.num_labels,
+                )
+
+
         else:
             raise ValueError('Unknown fine_tunning task!')
         return model
