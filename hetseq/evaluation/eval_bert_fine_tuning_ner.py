@@ -110,10 +110,12 @@ def main(args):
     # **YD** core code to keep only usefule parameters for model
     test_dataset.set_format(type=test_dataset.format["type"], columns=_NER_COLUMNS)
 
+    tmp_dataset = dataset[args.split]
+
     # **YD** dataloader
     data_loader = DataLoader(
         test_dataset,
-        batch_size=args.batch_size,
+        batch_size=1,
         sampler=None,
         collate_fn=data_collator,
         drop_last=False,
@@ -126,19 +128,41 @@ def main(args):
 
     true_predictions = []
     true_labels = []
+    # **YD** add tokens, probability score.
+    token_ids = []
+    tokens = []
+    probs = []
 
+    inputs = []
     for index, input in tqdm(enumerate(data_loader)):
+
+        tmp_dataset_ele = tmp_dataset[index]
+        inputs.append(input)
         labels, input['labels'] = input['labels'].tolist(), None
 
         # print(input.keys())
         input = utils.move_to_cuda(input)
+        token_id = input['input_ids'].tolist()
+
         predictions = model(**input)
-        if index == 0:
-            print('predictions', predictions)
+        prob = predictions.tolist()
         predictions = torch.argmax(predictions, axis=2).tolist()
+
         if index == 0:
             print('labels', labels)
             print('predictions', predictions)
+            print('input.keys()', input.keys())
+            print('tmp_dataset_ele.keys()', tmp_dataset_ele.keys())
+
+        probs.extend([
+            [p for (p, l) in zip(prob_ele, label) if l != -100]
+            for prob_ele, label in zip(prob, labels)
+        ])
+
+        token_ids.extend([
+            [p for (p, l) in zip(ele, label) if l != -100]
+            for ele, label in zip(token_id, labels)
+        ])
 
         true_predictions.extend([
             [label_list[p] for (p, l) in zip(prediction, label) if l != -100]
@@ -150,11 +174,30 @@ def main(args):
             for prediction, label in zip(predictions, labels)
         ])
 
+        # print("tmp_dataset_ele['tokens']", tmp_dataset_ele['tokens'])
+        tokens.append(tmp_dataset_ele['tokens'])
+
+
+    tokens = [token for token, true_label in zip(tokens, true_labels) if true_label != []]
     true_predictions = [true_prediction for true_prediction in true_predictions if true_prediction != []]
+    probs = [prob for prob in probs if prob != []]
+    token_ids = [token_id for token_id in token_ids if token_id != []]
+    count_tokens = [tokenizer.convert_ids_to_tokens(token_id) for token_id in token_ids]
+
     true_labels = [true_label for true_label in true_labels if true_label != []]
 
-    print('true_predictions', true_predictions[0], true_predictions[-1])
-    print('true_labels', true_labels[0], true_labels[-1])
+
+    # print('true_predictions', true_predictions[0], true_predictions[-1])
+    # print('true_labels', true_labels[0], true_labels[-1])
+    # print('inputs[0].keys()', inputs[0].keys())
+    for index, (true_prediction, prob, token_id, token, true_label) in \
+        enumerate(zip(true_predictions, probs, token_ids, tokens, true_labels)):
+        if not len(true_prediction) == len(prob) == len(token_id) == len(token) == len(true_label):
+            print(len(true_prediction), len(prob), len(token_id), len(token), len(true_label))
+            print('count_tokens', count_tokens[index])
+            print('token', token)
+
+        assert len(true_prediction) == len(prob) == len(token_id) == len(token) == len(true_label)
 
     print(
         {
@@ -164,6 +207,32 @@ def main(args):
             "f1": f1_score(true_labels, true_predictions),
         }
     )
+
+    with open(args.dataset + '_tokens.txt', 'w') as writer:
+        for token in tokens:
+            writer.write('\t'.join(str(t) for t in token))
+            writer.write('\n')
+
+    with open(args.dataset + '_probs.txt', 'w') as writer:
+        for token in probs:
+            writer.write('\t'.join(str(t) for t in token))
+            writer.write('\n')
+
+    with open(args.dataset + '_labels.txt', 'w') as writer:
+        for token in true_labels:
+            writer.write('\t'.join(str(t) for t in token))
+            writer.write('\n')
+
+    with open(args.dataset + '_predictions.txt', 'w') as writer:
+        for token in true_predictions:
+            writer.write('\t'.join(str(t) for t in token))
+            writer.write('\n')
+
+
+
+
+
+
 
 
 def prepare_dataset(args):
@@ -281,6 +350,15 @@ def cli_main():
         default='TransformersBertForTokenClassification',
         type=str,
         choices=['TransformersBertForTokenClassification'],
+    )
+
+    parser.add_argument(
+        '--dataset',
+        help='datasets available to process',
+        default='ace2004',
+        type=str,
+        choices=['aida_train', 'aida_testa', 'aida_testb',
+                 'ace2004', 'msnbc', 'wikipedia', 'aquaint', 'clueweb'],
     )
 
     args = parser.parse_args()
