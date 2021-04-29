@@ -65,7 +65,7 @@ _IGNORE_CLASSIFICATION_LABEL = -100
 
 def main(args):
 
-    #stop_words = StopWords()
+    stop_words = StopWords()
     ent_name_id = EntNameID(args)
     yago_crosswikis_wiki = YagoCrosswikisWiki(args)
 
@@ -223,6 +223,8 @@ def main(args):
     NER_predictions = []
     NER_labels = []
 
+    NER_valid_predictions = []
+
     EL_predictions = []
     EL_labels = []
 
@@ -269,18 +271,30 @@ def main(args):
             print('tokens', len(tokens), tokens)
             print('valid_mention_masks', len(valid_mention_masks), valid_mention_masks)
 
+            tmp_len = len(labels)
+            tokens = tokens[: tmp_len]
+            valid_mention_masks = valid_mention_masks[: tmp_len]
+
         assert len(labels) == len(entity_labels) == len(predictions) == len(entity_predictions) == len(tokens) == len(valid_mention_masks)
 
         NER_label = generate_NER_label(labels)
         EL_label = generate_EL_label(entity_labels, labels)
 
         NER_prediction = generate_NER_prediction(predictions, labels)
+        NER_valid_prediction = generate_NER_valid_prediction(
+            NER_prediction,
+            tokens,
+            stop_words,
+            yago_crosswikis_wiki,
+            ent_name_id,
+        )
         EL_prediction = generate_EL_prediction(entity_predictions, tokens, valid_mention_masks, predictions, labels, ent_name_id, yago_crosswikis_wiki, args)
 
         NER_labels.append(NER_label)
         EL_labels.append(EL_label)
 
         NER_predictions.append(NER_prediction)
+        NER_valid_predictions.append(NER_valid_prediction)
         EL_predictions.append(EL_prediction)
 
         if index == 0:
@@ -315,10 +329,19 @@ def main(args):
 
     print(
         {
-            "accuracy_score": accuracy_score(NER_labels, NER_predictions),
-            "precision": precision_score(NER_labels, NER_predictions),
-            "recall": recall_score(NER_labels, NER_predictions),
-            "f1": f1_score(NER_labels, NER_predictions),
+            "NER_accuracy_score": accuracy_score(NER_labels, NER_predictions),
+            "NER_precision": precision_score(NER_labels, NER_predictions),
+            "NER_recall": recall_score(NER_labels, NER_predictions),
+            "NER_f1": f1_score(NER_labels, NER_predictions),
+        }
+    )
+
+    print(
+        {
+            "NER_valid_accuracy_score": accuracy_score(NER_labels, NER_valid_predictions),
+            "NER_valid_precision": precision_score(NER_labels, NER_valid_predictions),
+            "NER_valid_recall": recall_score(NER_labels, NER_valid_predictions),
+            "NER_valid_f1": f1_score(NER_labels, NER_valid_predictions),
         }
     )
 
@@ -387,6 +410,45 @@ def generate_EL_label(entity_labels, labels):
 
 def generate_NER_prediction(predictions, labels):
     return [LABEL_LIST[pred] for pred, label in zip(predictions, labels) if label != -100]
+
+
+def generate_NER_valid_prediction(
+        NER_prediction,
+        tokens,
+        stop_words,
+        yago_crosswikis_wiki,
+        ent_name_id,
+    ):
+        L = len(tokens)
+        NER_valid_prediction = ['O'] * L
+        for left_index in range(L):
+            if NER_prediction[left_index] == 'B':
+                right_index = left_index
+                while right_index + 1 < L and NER_prediction[right_index + 1] == 'I':
+                    right_index += 1
+
+                if left_index == right_index and (
+                        stop_words.is_stop_word_or_number(tokens[left_index])
+                        or tokens[left_index].isspace()
+                        or tokens[left_index].strip().isnumeric()
+                        or tokens[left_index].strip() in '[@_!#$%^&*()<>?/\|}{~:,.\'\-"]'
+                ):
+                    continue
+
+                cur_mention = generate_mention(tokens[left_index: right_index + 1])
+                cur_mention = yago_crosswikis_wiki.preprocess_mention(cur_mention)
+                if cur_mention in yago_crosswikis_wiki.ent_p_e_m_index:
+                    sorted_cand = sorted(yago_crosswikis_wiki.ent_p_e_m_index[cur_mention].items(),
+                                         key=lambda x: x[1], reverse=True)
+                    thids = [
+                        ent_name_id.get_thid(ent_wikiid)
+                        for ent_wikiid, p in sorted_cand[: 10]
+                        if ent_name_id.get_thid(ent_wikiid) != ent_name_id.unk_ent_thid
+                    ]
+                    if len(thids) > 0:
+                        NER_valid_prediction[left_index: right_index + 1] = ['B'] + ['I'] * (right_index - left_index)
+
+        return NER_valid_prediction
 
 
 def generate_EL_prediction(entity_predictions, tokens, valid_mention_masks, predictions, labels, ent_name_id, yago_crosswikis_wiki, args):
