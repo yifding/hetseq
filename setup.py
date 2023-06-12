@@ -69,7 +69,7 @@ setup(
 	'boto3==1.9.244',
 	'torchvision==0.7.0',
 	'datasets==1.1.3',
-	'transformers==4.1.1',
+	'transformers==4.30.0',
 	'seqeval==1.2.2',
     ],
     packages=find_packages(exclude=[]),
